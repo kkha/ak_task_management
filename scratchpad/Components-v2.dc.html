@@ -1,0 +1,450 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%);
+      color: #1e293b;
+      letter-spacing: -0.3px;
+      padding: 40px;
+    }
+
+    .components {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1e293b;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e2e8f0;
+      letter-spacing: -0.5px;
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .component-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      border: 1px solid #f1f5f9;
+      transition: all 0.2s ease;
+    }
+
+    .component-card:hover {
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    /* === 버튼 === */
+    .button-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .btn {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      font-family: "Noto Sans KR", sans-serif;
+    }
+
+    .btn--primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn--primary:hover {
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn--secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn--secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn--success {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    /* === 뱃지 === */
+    .badge {
+      display: inline-block;
+      padding: 4px 11px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge--work {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge--personal {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge--study {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* === 체크박스 === */
+    .checkbox-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      gap: 11px;
+      align-items: center;
+    }
+
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #cbd5e1;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+
+    .checkbox:hover {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .checkbox.checked {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      border-color: #22c55e;
+      color: #ffffff;
+    }
+
+    .checkbox-label {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* === 칩 === */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 7px 14px;
+      background: #f1f5f9;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    .chip.active {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      border-color: #6366f1;
+    }
+
+    /* === 카드 === */
+    .demo-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      transition: all 0.2s ease;
+    }
+
+    .demo-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+
+    .demo-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .demo-card-text {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* === 컬러 팔레트 === */
+    .color-swatch {
+      border-radius: 10px;
+      height: 80px;
+      display: flex;
+      align-items: flex-end;
+      padding: 10px;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.02);
+    }
+
+    .description {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.6;
+      padding: 16px 0;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .description strong {
+      color: #1e293b;
+      font-weight: 600;
+    }
+  </style>
+</helmet>
+
+<div class="components">
+  <!-- 버튼 -->
+  <div class="section">
+    <div class="section-title">버튼</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="button-demo">
+          <button class="btn btn--primary">+ 추가</button>
+          <button class="btn btn--secondary">취소</button>
+          <button class="btn btn--success">완료</button>
+        </div>
+        <div class="description">
+          <strong>상태:</strong><br>
+          • Primary: 주요 행동<br>
+          • Secondary: 부수 행동<br>
+          • Success: 긍정 행동<br>
+          Hover: 그림자 + 상승
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뱃지 (카테고리) -->
+  <div class="section">
+    <div class="section-title">카테고리 뱃지</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="badge-row">
+          <span class="badge badge--work">업무</span>
+          <span class="badge badge--personal">개인</span>
+          <span class="badge badge--study">공부</span>
+        </div>
+        <div class="description">
+          <strong>용도:</strong><br>
+          작업 분류 표시<br><br>
+          <strong>컬러:</strong><br>
+          각 카테고리별 distinct한 색상
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 체크박스 -->
+  <div class="section">
+    <div class="section-title">체크박스</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="checkbox-demo">
+          <div class="checkbox-item">
+            <div class="checkbox"></div>
+            <div class="checkbox-label">완료 안 함</div>
+          </div>
+          <div class="checkbox-item">
+            <div class="checkbox checked">✓</div>
+            <div class="checkbox-label">완료됨</div>
+          </div>
+        </div>
+        <div class="description">
+          <strong>상태:</strong><br>
+          • Default: 테두리<br>
+          • Checked: Green gradient<br>
+          • Hover: 강조 링<br><br>
+          <strong>크기:</strong><br>
+          22×22px (44px 터치)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 칩/필터 -->
+  <div class="section">
+    <div class="section-title">칩 (필터)</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="chips">
+          <div class="chip active">전체</div>
+          <div class="chip">업무</div>
+          <div class="chip">개인</div>
+          <div class="chip">공부</div>
+        </div>
+        <div class="description">
+          <strong>상태:</strong><br>
+          • Default: 밝은 배경<br>
+          • Active: Indigo gradient<br>
+          • Hover: 어두워짐<br><br>
+          높이: 32px, 자동 너비
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 카드 -->
+  <div class="section">
+    <div class="section-title">카드</div>
+    <div class="component-grid">
+      <div class="demo-card">
+        <div class="demo-card-title">작업 제목</div>
+        <div class="demo-card-text">간단한 작업 설명 또는 메모</div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-card-title">진행률</div>
+        <div class="demo-card-text">3 / 5 완료</div>
+      </div>
+      <div class="component-card">
+        <div class="description">
+          <strong>스타일:</strong><br>
+          • 배경: 흰색<br>
+          • 테두리: 밝은 회색<br>
+          • 그림자: 미세<br>
+          • Hover: 강한 그림자<br><br>
+          <strong>용도:</strong><br>
+          작업 목록, 정보, 컨테이너
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 색상 팔레트 -->
+  <div class="section">
+    <div class="section-title">색상 팔레트</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="color-swatch" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white;">Primary</div>
+      </div>
+      <div class="component-card">
+        <div class="color-swatch" style="background: #f97316; color: white;">Accent</div>
+      </div>
+      <div class="component-card">
+        <div class="color-swatch" style="background: #22c55e; color: white;">Success</div>
+      </div>
+      <div class="component-card">
+        <div class="color-swatch" style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; text-shadow: none;">Light BG</div>
+      </div>
+      <div class="component-card">
+        <div class="color-swatch" style="background: #fef3c7; color: #92400e; text-shadow: none;">Work</div>
+      </div>
+      <div class="component-card">
+        <div class="color-swatch" style="background: #dbeafe; color: #1e40af; text-shadow: none;">Personal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 타이포그래피 -->
+  <div class="section">
+    <div class="section-title">타이포그래피</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">Heading Large</div>
+        <div style="font-size: 20px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">Heading Medium</div>
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.3px;">Body Strong</div>
+        <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">Body Normal</div>
+        <div style="font-size: 12px; font-weight: 500; color: #64748b;">Small Text</div>
+        <div class="description">
+          <strong>폰트:</strong><br>
+          Noto Sans KR<br><br>
+          <strong>특징:</strong><br>
+          • 한글 최적화<br>
+          • 명확한 계층<br>
+          • letter-spacing 조정
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

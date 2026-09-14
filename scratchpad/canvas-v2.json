@@ -1,0 +1,24 @@
+{
+  "artboards": [
+    { "file": "Main-v2.dc.html", "x": 0, "y": 0, "w": 1200, "h": 780, "title": "일별 보기" },
+    { "file": "Week-v2.dc.html", "x": 1280, "y": 0, "w": 1300, "h": 720, "title": "주간 보기" },
+    { "file": "Components-v2.dc.html", "x": 0, "y": 880, "w": 1400, "h": 1600, "title": "컴포넌트 & 색상" }
+  ],
+  "annotations": [
+    {
+      "id": "design-vision",
+      "x": -240,
+      "y": 0,
+      "w": 220,
+      "text": "🎨 새로운 디자인\n\n• Noto Sans KR\n• Indigo + Orange\n• Green success\n• Zone-based layout\n• 일상적 & 따뜻함"
+    },
+    {
+      "id": "principles",
+      "x": -240,
+      "y": 160,
+      "w": 220,
+      "text": "원칙\n\n1. 일상의 도구\n2. 빠른 인식\n3. 성취감\n4. 신뢰감"
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

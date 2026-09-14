@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACHElEQVR42u2bPUsEMRCG7yftr9h2wdJqWzsLO5utbKysbOws7CwsBdlKsFvEVrwq+IGi6IkoSmRkbRbPnSQzySaZFwLHwe3lfTJJJptkNhOJRCILVaUqqlI1VanaqlTzqlTac5n3/w11KHwarwMZxgCpuVu8m6DxYenII6JvdR1ZqanMNxGa/y1Nji1PEwl9n9eJlMIGQJcQgC7H0LfvChOd553zhBz7vvlYEPm05z4t9vl1qgDaZPr/5sa9Pth//inwmWwciMH8yfGrHgq+w/w2egDQ4suEiYSoAexsP+r/hImCaAGMmQednb6lCQBCGyOAlByA9bU7vXj5GjV/dfmR3iBoYn515TotAGAIY/725hNtPhoAYAhadUwACKLE5NmTB8BpPgoAMJVhZGOeBcBW86D3dp+sKzSW4tpOd+wAwDAMQDb5eCjzpACG5l0gQARhBOsA1ygjAQBh75qTm6S4rtFFDgDTYpgK+zZPBgD6v2vFsc+4OH8nnWXIxgDsoPUXBI4UN8g0aAMhpHmWPMAEgkmWx2GeLRPEQsC0vG2KGzwVxkIIaZ59LeAKAfIL7rUG+2LIFoJrijup1aApBF/mvS6HsRCODhdel9te3weMQaBMcSf7QmQZhBDmsQDIN0chzEOGvenmaMv1rg82OLgyPMrt8ewPSOR9RCb7Q1JyTE4OSspRWTksLcfl5cKEXJmRS1NybU4kEuWgb5wftolMlrAjAAAAAElFTkSuQmCC" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Task Management</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-bar">
+        <h1 class="app-bar__title">Task Management</h1>
+        <div class="app-bar__actions">
+          <div id="backup-status" class="backup-status" hidden>
+            <span class="backup-status__icon">↻</span>
+            <span class="backup-status__text">자동백업 활성화</span>
+          </div>
+          <button type="button" id="theme-toggle" class="ghost-btn">
+            테마: 자동
+          </button>
+          <button type="button" id="history-btn" class="ghost-btn">
+            히스토리
+          </button>
+          <button type="button" id="settings-btn" class="ghost-btn">
+            통합설정
+          </button>
+          <input
+            type="file"
+            id="import-file"
+            accept="application/json,.json"
+            hidden
+          />
+        </div>
+      </header>
+
+      <div class="layout">
+        <div class="left-column">
+          <aside class="nav-pane card" aria-label="일정관리">
+            <div class="nav-pane__head">
+              <span class="nav-pane__title">
+                일정관리 <span style="font-size: 0.65em; font-weight: 500; opacity: 0.75;">Overview</span>
+              </span>
+            </div>
+            <nav id="category-tree" class="cat-tree" aria-label="카테고리 필터"></nav>
+          </aside>
+
+          <aside class="week-analysis-pane card" aria-label="주별 업무 분석">
+            <div class="week-analysis__head">
+              <span id="week-title" class="week-analysis__title">W37 업무 현황</span>
+            </div>
+            <div class="week-analysis__body">
+              <div class="week-analysis__stats">
+                <div class="week-analysis__total">
+                  <span class="week-analysis__label">총 업무</span>
+                  <span id="week-total-count" class="week-analysis__count">0</span>
+                </div>
+              </div>
+              <div id="week-breakdown" class="week-analysis__breakdown"></div>
+            </div>
+          </aside>
+        </div>
+
+        <aside class="cal-pane card" aria-label="달력">
+          <div class="calendar__head">
+            <button
+              type="button"
+              id="cal-prev"
+              class="icon-btn"
+              aria-label="이전 달"
+            >
+              ‹
+            </button>
+            <span id="cal-title" class="calendar__title"></span>
+            <button
+              type="button"
+              id="cal-next"
+              class="icon-btn"
+              aria-label="다음 달"
+            >
+              ›
+            </button>
+          </div>
+          <div id="calendar" class="calendar__grid"></div>
+          <p class="calendar__legend">
+            <span class="calendar__legend-dot"></span> 할 일 있는 날
+          </p>
+
+          <section class="memo" aria-label="메모">
+            <div class="memo__bar">
+              <span class="memo__title">메모</span>
+              <span id="memo-status" class="memo__status" role="status"></span>
+            </div>
+            <textarea
+              id="memo-input"
+              class="memo__input"
+              placeholder="간단히 적어두세요…"
+              rows="6"
+              aria-label="메모"
+            ></textarea>
+          </section>
+        </aside>
+
+        <main class="detail-pane">
+          <div class="detail-head">
+            <button
+              type="button"
+              id="nav-toggle"
+              class="ghost-btn detail-head__navtoggle"
+              aria-label="분류 패널 열기"
+            >
+              ☰ 분류
+            </button>
+            <button type="button" id="period-today" class="ghost-btn">
+              오늘
+            </button>
+            <div class="detail-head__nav">
+              <button
+                type="button"
+                id="period-prev"
+                class="icon-btn"
+                aria-label="이전"
+              >
+                ‹
+              </button>
+              <span id="period-label" class="detail-head__label" role="status"
+                >오늘</span
+              >
+              <button
+                type="button"
+                id="period-next"
+                class="icon-btn"
+                aria-label="다음"
+              >
+                ›
+              </button>
+            </div>
+            <div class="seg" role="group" aria-label="보기 단위">
+              <button
+                type="button"
+                id="view-day"
+                data-view="day"
+                class="seg__btn is-active"
+                aria-pressed="true"
+              >
+                일별
+              </button>
+              <button
+                type="button"
+                id="view-week"
+                data-view="week"
+                class="seg__btn"
+                aria-pressed="false"
+              >
+                주별
+              </button>
+              <button
+                type="button"
+                id="view-month"
+                data-view="month"
+                class="seg__btn"
+                aria-pressed="false"
+              >
+                월별
+              </button>
+            </div>
+          </div>
+
+          <section class="progress card" aria-label="진행률">
+            <div class="progress__head">
+              <span id="progress-text">할 일이 없습니다</span>
+              <span id="progress-percent" class="progress__percent"></span>
+            </div>
+            <div class="progress__track">
+              <div
+                id="progress-fill"
+                class="progress__fill"
+                style="width: 0%"
+              ></div>
+            </div>
+          </section>
+
+          <form id="task-form" class="composer card" aria-label="할 일 추가">
+            <input
+              type="text"
+              id="task-input"
+              class="composer__input"
+              placeholder="할 일을 입력하세요"
+              autocomplete="off"
+              aria-label="할 일 내용"
+            />
+            <select
+              id="category-select"
+              class="composer__category"
+              aria-label="카테고리"
+              title="내용에 따라 자동 분류됩니다. 직접 골라도 됩니다."
+            ></select>
+            <select
+              id="subcategory-select"
+              class="composer__subcategory"
+              aria-label="세부분류"
+            ></select>
+            <select
+              id="priority-select"
+              class="composer__priority"
+              aria-label="우선순위"
+            ></select>
+            <button type="submit" class="primary-btn">추가</button>
+          </form>
+
+          <p id="composer-target" class="composer-target" hidden></p>
+          <p id="classify-hint" class="classify-hint" role="status" hidden></p>
+
+          <section class="toolbar" aria-label="목록 옵션">
+            <div class="toolbar__left">
+              <button
+                type="button"
+                id="active-filter"
+                class="active-filter"
+                hidden
+              ></button>
+            </div>
+            <div class="toolbar__right">
+              <label class="toggle">
+                <input type="checkbox" id="hide-completed" />
+                <span>완료 숨기기</span>
+              </label>
+              <label class="field">
+                <span>정렬</span>
+                <select id="sort-select" aria-label="정렬 방식"></select>
+              </label>
+            </div>
+          </section>
+
+          <p id="filter-notice" class="notice" role="status" hidden></p>
+
+          <ul id="task-list" class="task-list"></ul>
+        </main>
+      </div>
+    </div>
+
+    <p
+      id="live-region"
+      class="visually-hidden"
+      role="status"
+      aria-live="polite"
+    ></p>
+
+    <dialog id="history-dialog" class="settings history" aria-label="완료 히스토리">
+      <form method="dialog" class="settings__head">
+        <h2 class="settings__title">완료 히스토리</h2>
+        <button value="close" class="ghost-btn">닫기</button>
+      </form>
+      <div class="history__controls">
+        <input
+          type="search"
+          id="history-search"
+          class="history__search"
+          placeholder="내용 검색…"
+          autocomplete="off"
+          aria-label="완료 항목 검색"
+        />
+        <label class="history__range">
+          <span>완료일</span>
+          <input type="date" id="history-from" aria-label="시작일" />
+          <span>~</span>
+          <input type="date" id="history-to" aria-label="종료일" />
+        </label>
+      </div>
+      <div id="history-body" class="history__body"></div>
+    </dialog>
+
+    <dialog id="settings-dialog" class="settings" aria-label="통합설정">
+      <form method="dialog" class="settings__head">
+        <h2 class="settings__title">통합설정</h2>
+        <button value="close" class="ghost-btn">닫기</button>
+      </form>
+
+      <div class="settings__tabs" role="tablist">
+        <button class="settings__tab is-active" data-tab="classify" role="tab" aria-selected="true">분류</button>
+        <button class="settings__tab" data-tab="subcat" role="tab" aria-selected="false">세부분류</button>
+        <button class="settings__tab" data-tab="backup" role="tab" aria-selected="false">자동 백업</button>
+        <button class="settings__tab" data-tab="import-export" role="tab" aria-selected="false">가져오기/내보내기</button>
+      </div>
+
+      <div id="classify-panel" class="settings__panel is-active">
+        <p class="settings__desc">
+          할 일 내용에 아래 키워드가 들어 있으면 해당 카테고리로 자동 분류됩니다.
+          카테고리를 직접 바꾸면 그 내용이 자동으로 학습되어 여기에 쌓입니다.
+        </p>
+        <div id="settings-body" class="settings__body"></div>
+        <div class="settings__foot">
+          <button type="button" id="settings-reset" class="ghost-btn">
+            추가·학습 키워드 모두 삭제
+          </button>
+        </div>
+      </div>
+
+      <div id="subcat-panel" class="settings__panel">
+        <p class="settings__desc">
+          카테고리별 세부분류를 추가·이름변경·삭제합니다. 할 일을 추가·수정할 때
+          여기서 만든 세부분류를 고를 수 있고, 좌측 분류 트리에서 필터링됩니다.
+        </p>
+        <div id="subcat-body" class="settings__body"></div>
+      </div>
+
+      <div id="backup-panel" class="settings__panel">
+        <p class="settings__desc">
+          일주일에 한 번 자동으로 할 일을 내보내기합니다.
+          같은 파일명으로 덮어쓰므로 최신 백업만 유지됩니다.
+        </p>
+        <div id="backup-body" class="settings__body"></div>
+      </div>
+
+      <div id="import-export-panel" class="settings__panel">
+        <div class="settings__body">
+          <section class="import-export-section">
+            <h3 class="import-export-title">내보내기</h3>
+            <p>현재 모든 할 일과 설정을 JSON 파일로 저장합니다.</p>
+            <button type="button" id="export-now-btn" class="primary-btn">지금 내보내기</button>
+          </section>
+          <section class="import-export-section">
+            <h3 class="import-export-title">가져오기</h3>
+            <p>이전에 저장한 JSON 파일을 불러옵니다. 기존 데이터에 병합됩니다.</p>
+            <button type="button" id="import-now-btn" class="primary-btn">파일 선택</button>
+            <input type="file" id="import-file" accept="application/json,.json" hidden />
+          </section>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- 개발용 소스 index.html을 그냥 더블클릭했을 때 안내 (빌드본/개발서버에서는 안 보임) -->
+    <div
+      id="dev-file-notice"
+      hidden
+      style="
+        max-width: 34rem;
+        margin: 3rem auto;
+        padding: 1.5rem;
+        font-family:
+          system-ui,
+          -apple-system,
+          &quot;Malgun Gothic&quot;,
+          sans-serif;
+        line-height: 1.7;
+        border: 1px solid #d3d8de;
+        border-radius: 10px;
+      "
+    >
+      <h1 style="margin: 0 0 0.5rem; font-size: 1.25rem">
+        이 파일은 직접 열 수 없습니다
+      </h1>
+      <p style="margin: 0 0 0.75rem; color: #656d76">
+        여기 있는 <code>index.html</code>은 개발용 원본입니다. 아래 중 하나로
+        실행하세요.
+      </p>
+      <ul style="margin: 0; padding-left: 1.2rem">
+        <li>
+          <b>바로 열기:</b> <code>dist/index.html</code> 를 더블클릭
+          <span style="color: #656d76"
+            >(<code>npm run build</code> 로 생성)</span
+          >
+        </li>
+        <li>
+          <b>개발 서버:</b> 터미널에서 <code>npm run dev</code> 실행 후 표시된
+          주소 열기
+        </li>
+      </ul>
+    </div>
+
+    <script>
+      // main.js가 뜨지 않으면(= file://로 원본을 연 경우) 안내를 보여준다.
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          if (window.__APP_BOOTED__) return;
+          var notice = document.getElementById("dev-file-notice");
+          var app = document.querySelector(".app");
+          if (notice) notice.hidden = false;
+          if (app) app.hidden = true;
+        }, 400);
+      });
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

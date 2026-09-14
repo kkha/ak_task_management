@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run *)",
+      "PowerShell(npm install *)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' --version)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' add .)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config user.email)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config user.name)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' init)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' remote add origin https://github.com/kkha/ak_task_management)",
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.email \"anderson.kim@ax.samsung.com\" ; & 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.name \"Anderson Kim\")"
+    ]
+  }
+}

@@ -1,0 +1,201 @@
+/* ──────────────────────────────────────────────────────────────
+ * 디자인 토큰 + 테마 + 기본 리셋
+ *   - data-theme 미지정 → 시스템 설정(prefers-color-scheme)을 따른다
+ *   - data-theme="light" / "dark" → 사용자가 명시적으로 고정
+ * 다크 팔레트가 두 번 나오는 건 순수 CSS의 한계다(미디어쿼리 + 강제 토글).
+ * ────────────────────────────────────────────────────────────── */
+
+:root {
+  --bg: #fafbfc;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-contrast: #ffffff;
+  --accent-soft: #eef2ff;
+
+  --accent-warm: #f97316;
+  --accent-warm-soft: #fff7ed;
+
+  --success: #22c55e;
+  --success-soft: #dcfce7;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
+
+  --cat-개인-bg: #dbeafe;
+  --cat-개인-fg: #1e40af;
+  --cat-업무-bg: #fde68a;
+  --cat-업무-fg: #92400e;
+  --cat-공부-bg: #bbf7d0;
+  --cat-공부-fg: #166534;
+
+  --memo-bg: #fef9c3;
+  --memo-border: #fde68a;
+  --memo-fg: #713f12;
+
+  /* 주간/월간 계획 태그 + 달력 WK 열 */
+  --scope-week-bg: #e0e7ff;
+  --scope-week-fg: #4338ca;
+  --scope-month-bg: #ffe4e6;
+  --scope-month-fg: #be123c;
+  --wk-fg: #7c3aed;
+
+  /* 세부분류 태그 (진행 토글·카테고리 칩과 구분되는 색) */
+  --subcat-bg: #ccfbf1;
+  --subcat-fg: #0f766e;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --shadow-sm:
+    0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md:
+    0 4px 12px rgba(15, 23, 42, 0.08);
+  --ring: 0 0 0 3px rgba(99, 102, 241, 0.1);
+
+  --font:
+    "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* 다크 팔레트 (시스템 설정, 단 명시적 라이트가 아닐 때) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f172a;
+    --bg-elev: #1e293b;
+    --surface: #1a1f35;
+    --surface-2: #233044;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --border-strong: #475569;
+    --accent: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-contrast: #0f172a;
+    --accent-soft: #312e81;
+    --accent-warm: #fb923c;
+    --accent-warm-soft: #5a2a0a;
+    --success: #4ade80;
+    --success-soft: #143a1e;
+    --danger: #f87171;
+    --danger-soft: #2a1e22;
+    --cat-개인-bg: #1e3a5f;
+    --cat-개인-fg: #bfdbfe;
+    --cat-업무-bg: #4a3410;
+    --cat-업무-fg: #fde68a;
+    --cat-공부-bg: #14432a;
+    --cat-공부-fg: #bbf7d0;
+    --memo-bg: #3a3410;
+    --memo-border: #5c4a12;
+    --memo-fg: #fde9a9;
+    --scope-week-bg: #312e81;
+    --scope-week-fg: #c7d2fe;
+    --scope-month-bg: #4c1d24;
+    --scope-month-fg: #fecdd3;
+    --wk-fg: #c4b5fd;
+    --subcat-bg: #134e4a;
+    --subcat-fg: #99f6e4;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --ring: 0 0 0 3px rgba(129, 140, 248, 0.35);
+  }
+}
+
+/* 다크 팔레트 (사용자가 명시적으로 고정) */
+:root[data-theme="dark"] {
+  --bg: #0f172a;
+  --bg-elev: #1e293b;
+  --surface: #1a1f35;
+  --surface-2: #233044;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --border-strong: #475569;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-contrast: #0f172a;
+  --accent-soft: #312e81;
+  --accent-warm: #fb923c;
+  --accent-warm-soft: #5a2a0a;
+  --success: #4ade80;
+  --success-soft: #143a1e;
+  --danger: #f87171;
+  --danger-soft: #2a1e22;
+  --cat-개인-bg: #1e3a5f;
+  --cat-개인-fg: #bfdbfe;
+  --cat-업무-bg: #4a3410;
+  --cat-업무-fg: #fde68a;
+  --cat-공부-bg: #14432a;
+  --cat-공부-fg: #bbf7d0;
+  --memo-bg: #3a3410;
+  --memo-border: #5c4a12;
+  --memo-fg: #fde9a9;
+  --scope-week-bg: #312e81;
+  --scope-week-fg: #c7d2fe;
+  --scope-month-bg: #4c1d24;
+  --scope-month-fg: #fecdd3;
+  --wk-fg: #c4b5fd;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ring: 0 0 0 3px rgba(129, 140, 248, 0.35);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  padding: 1.1rem 1.25rem 2.5rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.12s ease;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}

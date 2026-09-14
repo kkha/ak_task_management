@@ -1,0 +1,580 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fafbfc;
+      color: #1e293b;
+      letter-spacing: -0.3px;
+    }
+
+    .ak-app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+      gap: 0;
+    }
+
+    /* === 사이드바: 따뜻한 배경 === */
+    .sidebar {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      box-shadow: inset -1px 0 0 0 #e2e8f0;
+    }
+
+    .sidebar__header {
+      padding: 24px 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .sidebar__app-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #6366f1;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .sidebar__subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .sidebar__nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #64748b;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item:hover {
+      background: #f1f5f9;
+      color: #475569;
+      transform: translateX(2px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f4ff 100%);
+      color: #6366f1;
+      font-weight: 600;
+    }
+
+    .nav-item__icon {
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* === 메인 영역 === */
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      background: #fafbfc;
+    }
+
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .header__left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header__date {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: -0.5px;
+    }
+
+    .header__progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .header__actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "Noto Sans KR", sans-serif;
+    }
+
+    .btn--add {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn--add:hover {
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn--secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn--secondary:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    /* === 콘텐츠 === */
+    .content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      padding: 24px;
+      overflow: auto;
+    }
+
+    /* === 캘린더 패널 === */
+    .calendar-panel {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      height: fit-content;
+      position: sticky;
+      top: 24px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .calendar__title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .calendar__grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .calendar__header {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-align: center;
+      padding: 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .calendar__day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #64748b;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .calendar__day:hover {
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .calendar__day.active {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .calendar__day.has-task::after {
+      content: '';
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #f97316;
+      border-radius: 50%;
+      bottom: 3px;
+    }
+
+    /* === 작업 목록 === */
+    .tasks-panel {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      border: 1px solid #f1f5f9;
+    }
+
+    .tasks__header {
+      margin-bottom: 20px;
+    }
+
+    .tasks__title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .tasks__subtitle {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .task-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      align-items: flex-start;
+      border: 1px solid transparent;
+    }
+
+    .task-item:hover {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      transform: translateX(2px);
+    }
+
+    .task-item__checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #cbd5e1;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-size: 13px;
+    }
+
+    .task-item__checkbox:hover {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .task-item__checkbox.checked {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      border-color: #22c55e;
+      color: #ffffff;
+    }
+
+    .task-item__content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-item__text {
+      font-size: 14px;
+      color: #1e293b;
+      font-weight: 500;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .task-item__meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .task-item__tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .task-item__tag--work {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .task-item__tag--personal {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .task-item__tag--study {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .task-item__priority {
+      font-size: 12px;
+      color: #f97316;
+      font-weight: 700;
+    }
+
+    .task-item.done .task-item__text {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+
+    /* === 진행 영역 === */
+    .progress-zone {
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+
+    .progress-bar {
+      height: 7px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1 0%, #f97316 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 1280px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+      .calendar-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .ak-app {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+  </style>
+</helmet>
+
+<div class="ak-app">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar__header">
+      <div class="sidebar__app-name">AK Task</div>
+      <div class="sidebar__subtitle">할 일 관리</div>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-item active">
+        <span class="nav-item__icon">📋</span>
+        <span>전체</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-item__icon">👤</span>
+        <span>개인</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-item__icon">💼</span>
+        <span>업무</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-item__icon">📚</span>
+        <span>공부</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 메인 컨테이너 -->
+  <div class="main-container">
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="header__left">
+        <div class="header__date">오늘 · 9월 13일</div>
+        <div class="header__progress">1 / 3 완료</div>
+      </div>
+      <div class="header__actions">
+        <button class="btn btn--secondary">📊 히스토리</button>
+        <button class="btn btn--add">+ 추가</button>
+      </div>
+    </div>
+
+    <!-- 콘텐츠 -->
+    <div class="content">
+      <!-- 캘린더 -->
+      <div class="calendar-panel">
+        <div class="calendar__title">2026년 9월</div>
+        <div class="calendar__grid">
+          <div class="calendar__header">일</div>
+          <div class="calendar__header">월</div>
+          <div class="calendar__header">화</div>
+          <div class="calendar__header">수</div>
+          <div class="calendar__header">목</div>
+          <div class="calendar__header">금</div>
+          <div class="calendar__header">토</div>
+
+          <div class="calendar__day">31</div>
+          <div class="calendar__day has-task">1</div>
+          <div class="calendar__day has-task">2</div>
+          <div class="calendar__day">3</div>
+          <div class="calendar__day has-task">4</div>
+          <div class="calendar__day">5</div>
+          <div class="calendar__day">6</div>
+          <div class="calendar__day">7</div>
+          <div class="calendar__day has-task">8</div>
+          <div class="calendar__day">9</div>
+          <div class="calendar__day">10</div>
+          <div class="calendar__day">11</div>
+          <div class="calendar__day">12</div>
+          <div class="calendar__day active has-task">13</div>
+          <div class="calendar__day">14</div>
+        </div>
+      </div>
+
+      <!-- 작업 목록 -->
+      <div class="tasks-panel">
+        <div class="tasks__header">
+          <div class="tasks__title">오늘의 작업</div>
+          <div class="tasks__subtitle">총 3개 · 완료 1개</div>
+        </div>
+
+        <div class="task-list">
+          <!-- 작업 1 -->
+          <div class="task-item">
+            <div class="task-item__checkbox"></div>
+            <div class="task-item__content">
+              <div class="task-item__text">분기 목표 리뷰 진행</div>
+              <div class="task-item__meta">
+                <span class="task-item__tag task-item__tag--work">업무</span>
+                <span class="task-item__priority">⚡ 높음</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 작업 2 -->
+          <div class="task-item done">
+            <div class="task-item__checkbox checked">✓</div>
+            <div class="task-item__content">
+              <div class="task-item__text">메일 답장하기</div>
+              <div class="task-item__meta">
+                <span class="task-item__tag task-item__tag--work">업무</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 작업 3 -->
+          <div class="task-item">
+            <div class="task-item__checkbox"></div>
+            <div class="task-item__content">
+              <div class="task-item__text">React 튜토리얼 완료</div>
+              <div class="task-item__meta">
+                <span class="task-item__tag task-item__tag--study">공부</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 진행률 -->
+        <div class="progress-zone">
+          <div class="progress-label">진행률 33%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 33%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

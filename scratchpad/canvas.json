@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1200, "h": 768, "title": "일별 보기 - 현대식 디자인" },
+    { "file": "Week.dc.html", "x": 1280, "y": 0, "w": 1200, "h": 600, "title": "주간 보기" },
+    { "file": "Components.dc.html", "x": 0, "y": 840, "w": 1200, "h": 1400, "title": "컴포넌트 라이브러리" }
+  ],
+  "annotations": [
+    {
+      "id": "design-note-1",
+      "x": -200,
+      "y": 0,
+      "w": 180,
+      "text": "🎨 현대식 디자인 시스템\n\n• 세련된 그래디언트\n• 8px 그리드\n• 44px 터치 영역\n• 인디고 accent"
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

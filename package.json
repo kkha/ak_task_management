@@ -1,0 +1,32 @@
+{
+  "name": "task-management",
+  "version": "4.3.0",
+  "description": "Task Management — 날짜·주·월별 할 일 + 세부분류 + 상태·우선순위·반복·히스토리 + 달력. 계정·설치·네트워크 없이 브라우저만으로 동작하는 단일 파일 앱.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "screenshot": "vite build && node scripts/shot.mjs",
+    "icon": "node scripts/make-icon.mjs",
+    "package": "vite build && node scripts/make-icon.mjs && node scripts/package.mjs"
+  },
+  "keywords": [],
+  "author": "kkha123@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "jsdom": "^30.0.1",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.6",
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^5.0.0"
+  }
+}

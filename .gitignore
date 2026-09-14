@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+scripts/screenshots/
+release/
+assets/
+task-backup.json

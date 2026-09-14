@@ -1,0 +1,451 @@
+/* ── 분류 키워드 설정 다이얼로그 ─────────────────────────────── */
+
+.settings {
+  width: min(92vw, 520px);
+  max-height: 85vh;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: auto;
+}
+
+.settings::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.settings__head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.settings__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* 설정 탭 */
+.settings__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.1rem;
+  margin-top: -1px;
+}
+
+.settings__tab {
+  flex: 1;
+  padding: 0.8rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings__tab:hover {
+  color: var(--text);
+}
+
+.settings__tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.settings__panel {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+
+.settings__panel.is-active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.import-export-section {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.import-export-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.import-export-section p {
+  margin: 0 0 0.8rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 자동 백업 설정 */
+.backup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.backup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.backup-row .field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backup-row select {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.backup-info {
+  padding: 0.8rem;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.backup-info p {
+  margin: 0;
+  color: var(--text);
+}
+
+.backup-folder-display {
+  display: inline-block;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0 0.5rem;
+  min-width: 150px;
+}
+
+.backup-btn-small {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.85rem !important;
+}
+
+.settings__desc {
+  margin: 0;
+  padding: 0.9rem 1.1rem 0;
+  font-size: 0.83rem;
+  color: var(--text-muted);
+}
+
+.settings__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1rem 1.1rem;
+}
+
+.settings__foot {
+  padding: 0 1.1rem 1.1rem;
+}
+
+.kwcat__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  margin-bottom: 0.5rem;
+}
+
+.kwcat__count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.kwcat__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.kwcat__empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.kw {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.kw--builtin {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.kw--learned {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.kw__x {
+  padding: 0;
+  width: 1.1em;
+  height: 1.1em;
+  line-height: 1;
+  font-size: 0.95em;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.kw__x:hover {
+  opacity: 1;
+}
+
+.kwcat__add {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.kwcat__add input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.kwcat__add .primary-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* 업무 카테고리의 트리 구조 */
+.kwcat__tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+
+.kwcat__parent {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 0.6rem;
+  overflow: hidden;
+}
+
+.kwcat__parent-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.kwcat__parent-text {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kwcat__children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.kwcat__child {
+  margin-left: 0.4rem;
+  font-size: 0.78rem;
+}
+
+/* ── 완료 히스토리 다이얼로그 ─────────────────────────────────── */
+.history {
+  width: min(94vw, 640px);
+}
+
+.history__controls {
+  position: sticky;
+  top: 3.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.8rem 1.1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.history__search {
+  flex: 1;
+  min-width: 10rem;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.history__range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.history__range input {
+  padding: 0.35rem 0.4rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.history__body {
+  padding: 0.4rem 1.1rem 1.2rem;
+}
+
+.history__summary {
+  margin: 0.6rem 0 0.2rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.history__empty {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.history__day {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.history__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.history__item {
+  padding: 0.5rem 0.65rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.history__top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.history__time {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.history__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.history__cat {
+  flex-shrink: 0;
+  padding: 0.08rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.history__cat[data-category="개인"] {
+  background: var(--cat-개인-bg);
+  color: var(--cat-개인-fg);
+}
+.history__cat[data-category="업무"] {
+  background: var(--cat-업무-bg);
+  color: var(--cat-업무-fg);
+}
+.history__cat[data-category="공부"] {
+  background: var(--cat-공부-bg);
+  color: var(--cat-공부-fg);
+}
+
+.history__meta {
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.history__notes {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  border-top: 1px dashed var(--border);
+}

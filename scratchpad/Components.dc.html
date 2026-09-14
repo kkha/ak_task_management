@@ -1,0 +1,474 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #0f172a;
+      padding: 40px;
+    }
+
+    .components {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #0f172a;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .component-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+
+    /* === 버튼 === */
+    .btn-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .btn--primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn--primary:hover {
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn--secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn--secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn--danger {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    /* === 뱃지 === */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge--work {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge--personal {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge--study {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* === 체크박스 === */
+    .checkbox-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .checkbox:hover {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .checkbox.checked {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      border-color: #4f46e5;
+      color: #ffffff;
+    }
+
+    .checkbox-label {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* === 태그/칩 === */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    .chip.active {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      color: #ffffff;
+      border-color: #4f46e5;
+    }
+
+    /* === 카드 === */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .card-text {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    /* === 프로그레스 바 === */
+    .progress {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5 0%, #818cf8 100%);
+    }
+
+    .demo-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .demo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .demo-percent {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+    }
+  </style>
+</helmet>
+
+<div class="components">
+  <!-- 버튼 -->
+  <div class="section">
+    <div class="section-title">버튼</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="btn-demo">
+          <button class="btn btn--primary">Primary Button</button>
+          <button class="btn btn--secondary">Secondary Button</button>
+          <button class="btn btn--danger">Delete</button>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">스타일:</strong><br>
+          • Primary: 주요 행동<br>
+          • Secondary: 부수 행동<br>
+          • Danger: 위험한 행동<br><br>
+          <strong style="color: #0f172a;">상태:</strong><br>
+          • Hover: 그림자 + 이동<br>
+          • Active: 색상 변경<br>
+          • Disabled: 투명도
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뱃지 -->
+  <div class="section">
+    <div class="section-title">뱃지 (카테고리)</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="badge-row">
+          <span class="badge badge--work">업무</span>
+          <span class="badge badge--personal">개인</span>
+          <span class="badge badge--study">공부</span>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">컬러:</strong><br>
+          • 업무: 노랑<br>
+          • 개인: 파랑<br>
+          • 공부: 초록<br><br>
+          <strong style="color: #0f172a;">용도:</strong><br>
+          작업 카테고리 표시
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 체크박스 -->
+  <div class="section">
+    <div class="section-title">체크박스</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="checkbox-demo">
+          <div class="checkbox-item">
+            <div class="checkbox"></div>
+            <div class="checkbox-label">완료 안 함</div>
+          </div>
+          <div class="checkbox-item">
+            <div class="checkbox checked">✓</div>
+            <div class="checkbox-label">완료됨</div>
+          </div>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">상태:</strong><br>
+          • Default: 테두리만<br>
+          • Checked: 그래디언트<br>
+          • Hover: 강조<br><br>
+          <strong style="color: #0f172a;">크기:</strong><br>
+          20×20px (44px 터치 영역)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 칩/태그 -->
+  <div class="section">
+    <div class="section-title">칩 (필터)</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="chips">
+          <div class="chip active">전체</div>
+          <div class="chip">업무</div>
+          <div class="chip">개인</div>
+          <div class="chip">공부</div>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">상태:</strong><br>
+          • Default: 밝은 배경<br>
+          • Active: 인디고 그래디언트<br>
+          • Hover: 어두워짐<br><br>
+          <strong style="color: #0f172a;">크기:</strong><br>
+          높이 32px, 자동 너비
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 카드 -->
+  <div class="section">
+    <div class="section-title">카드</div>
+    <div class="component-grid">
+      <div class="card">
+        <div class="card-title">Task Title</div>
+        <div class="card-text">Brief description of the task with important details</div>
+      </div>
+      <div class="card">
+        <div class="card-title">11 / 15 완료</div>
+        <div class="card-text">이번 주의 진행률을 확인하세요</div>
+      </div>
+      <div class="component-card" style="grid-column: span 2;">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">스타일:</strong><br>
+          • 배경: 흰색<br>
+          • 테두리: 밝은 회색<br>
+          • 그림자: 미세<br>
+          • Hover: 강한 그림자<br><br>
+          <strong style="color: #0f172a;">용도:</strong><br>
+          작업 목록, 정보 표시, 컨테이너
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로그레스 바 -->
+  <div class="section">
+    <div class="section-title">프로그레스 바</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="demo-row">
+          <div class="demo-item">
+            <div class="progress" style="flex: 1;">
+              <div class="progress-label">25% 완료</div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div>
+            </div>
+          </div>
+          <div class="demo-item">
+            <div class="progress" style="flex: 1;">
+              <div class="progress-label">75% 완료</div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+          <strong style="color: #0f172a;">스타일:</strong><br>
+          • 높이: 6px<br>
+          • 배경: 밝은 회색<br>
+          • 그래디언트: 인디고→라벤더<br>
+          • 둥근 모서리: 3px<br><br>
+          <strong style="color: #0f172a;">용도:</strong><br>
+          작업 완료율 시각화
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 색상 팔레트 -->
+  <div class="section">
+    <div class="section-title">색상 팔레트</div>
+    <div class="component-grid">
+      <div class="component-card">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div style="border-radius: 8px; background: #4f46e5; height: 60px; display: flex; align-items: flex-end; padding: 8px; color: white; font-size: 11px; font-weight: 700;">Primary</div>
+          <div style="border-radius: 8px; background: #818cf8; height: 60px; display: flex; align-items: flex-end; padding: 8px; color: white; font-size: 11px; font-weight: 700;">Light</div>
+          <div style="border-radius: 8px; background: #16a34a; height: 60px; display: flex; align-items: flex-end; padding: 8px; color: white; font-size: 11px; font-weight: 700;">Success</div>
+          <div style="border-radius: 8px; background: #dc2626; height: 60px; display: flex; align-items: flex-end; padding: 8px; color: white; font-size: 11px; font-weight: 700;">Danger</div>
+        </div>
+      </div>
+      <div class="component-card">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div style="border-radius: 8px; background: #f1f5f9; height: 60px; border: 1px solid #e2e8f0; display: flex; align-items: flex-end; padding: 8px; color: #475569; font-size: 11px; font-weight: 700;">Light BG</div>
+          <div style="border-radius: 8px; background: #0f172a; height: 60px; display: flex; align-items: flex-end; padding: 8px; color: #ffffff; font-size: 11px; font-weight: 700;">Dark</div>
+          <div style="border-radius: 8px; background: #fef3c7; height: 60px; border: 1px solid #fde68a; display: flex; align-items: flex-end; padding: 8px; color: #92400e; font-size: 11px; font-weight: 700;">Work</div>
+          <div style="border-radius: 8px; background: #dbeafe; height: 60px; border: 1px solid #bfdbfe; display: flex; align-items: flex-end; padding: 8px; color: #1e40af; font-size: 11px; font-weight: 700;">Personal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
