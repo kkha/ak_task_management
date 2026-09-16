@@ -348,9 +348,11 @@ describe("loadMemo / saveMemo", () => {
 describe("serializeExport / parseImport (왕복)", () => {
   it("내보낸 것을 다시 가져올 수 있다", () => {
     const tasks = [validTask, { ...validTask, id: "def", completed: true }];
-    const json = serializeExport(tasks);
+    const memo = "테스트 메모";
+    const subcats = { 개인: [], 업무: { 빅데이터: [] }, 공부: [] };
+    const json = serializeExport(tasks, memo, subcats);
     const result = parseImport(json);
-    expect(result).toEqual({ ok: true, tasks });
+    expect(result).toEqual({ ok: true, tasks, memo, subcategories: subcats });
   });
 
   it("내보내기 JSON에 appVersion·스키마 버전이 들어간다", () => {
@@ -360,7 +362,7 @@ describe("serializeExport / parseImport (왕복)", () => {
   });
 
   it("최상위 배열도 받는다", () => {
-    expect(parseImport(JSON.stringify([validTask]))).toEqual({
+    expect(parseImport(JSON.stringify([validTask]))).toMatchObject({
       ok: true,
       tasks: [validTask],
     });

@@ -9,7 +9,11 @@
       "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config user.name)",
       "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' init)",
       "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' remote add origin https://github.com/kkha/ak_task_management)",
-      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.email \"anderson.kim@ax.samsung.com\" ; & 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.name \"Anderson Kim\")"
+      "PowerShell(& 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.email \"anderson.kim@ax.samsung.com\" ; & 'C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe' config --global user.name \"Anderson Kim\")",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

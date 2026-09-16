@@ -442,23 +442,69 @@ export function parseFilter(filter) {
 
 /**
  * 필터(카테고리/세부분류) + 완료 숨김을 적용한 목록을 반환한다(정렬 이후 호출).
- * @param {{filter?: string, hideCompleted?: boolean}} opts
+ * @param {{filter?: string, hideCompleted?: boolean, subcats?: object}} opts
+ *   업무의 부모 필터(예: "업무/빅데이터")는 그 부모의 모든 자식 세부분류를 포함.
  */
 export function visibleTasks(
   tasks,
-  { filter = "전체", hideCompleted = false }
+  { filter = "전체", hideCompleted = false, subcats = {} }
 ) {
   const { cat, subpath } = parseFilter(filter);
-  return tasks.filter((t) => {
+
+  // 부모 필터(업무/빅데이터) vs 자식 필터(업무/빅데이터/로케이션찾기) 구분
+  let targetSubcategory = null;  // 자식 필터인 경우 정확한 자식명
+  let validSubcats = null;       // 부모 필터인 경우 자식들 set
+
+  if (cat === "업무" && subpath && subpath !== "" && subcats?.업무) {
+    const businessMap = subcats.업무;
+    const slashIndex = subpath.indexOf("/");
+
+    if (slashIndex !== -1) {
+      // 자식 필터: "빅데이터/로케이션찾기" → 부모="빅데이터", 자식="로케이션찾기"
+      const parent = subpath.slice(0, slashIndex);
+      const child = subpath.slice(slashIndex + 1);
+      const parentChildren = businessMap[parent];
+      if (Array.isArray(parentChildren) && parentChildren.includes(child)) {
+        // 할일의 subcategory가 "부모/자식" 또는 "자식"만의 형태일 수 있으므로 양쪽 모두 허용
+        targetSubcategory = child;
+        // 실제로는 "부모/자식" 형태로도 비교하도록 Set으로 구성
+        validSubcats = new Set([child, subpath]);
+      }
+    } else {
+      // 부모 필터: "빅데이터"
+      const parentChildren = businessMap[subpath];
+      if (Array.isArray(parentChildren) && parentChildren.length > 0) {
+        // 할일의 subcategory가 "부모/자식" 형태일 수 있으므로 양쪽 형태 모두 허용
+        validSubcats = new Set([
+          ...parentChildren, // 자식만 ("로케이션찾기")
+          ...parentChildren.map(child => `${subpath}/${child}`), // 부모/자식 ("빅데이터/로케이션찾기")
+        ]);
+      }
+    }
+  }
+
+
+  const filtered = tasks.filter((t) => {
     if (cat && t.category !== cat) return false;
     if (subpath !== null) {
       const tsub =
         typeof t.subcategory === "string" && t.subcategory ? t.subcategory : "";
-      if (subpath === "" ? tsub !== "" : tsub !== subpath) return false;
+      if (subpath === "") {
+        // 미분류: subcategory가 없어야 함
+        if (tsub !== "") return false;
+      } else if (validSubcats) {
+        // 부모 필터: 그 부모의 모든 자식 포함
+        if (!validSubcats.has(tsub)) return false;
+      } else {
+        // 일반 세부분류 필터 (업무가 아닌 경우): 정확히 일치
+        if (tsub !== subpath) return false;
+      }
     }
     if (hideCompleted && t.completed) return false;
     return true;
   });
+
+  return filtered;
 }
 
 /**

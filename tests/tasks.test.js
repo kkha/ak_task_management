@@ -510,27 +510,40 @@ describe("rescheduleTask", () => {
 
 describe("parseFilter / visibleTasks (세부분류)", () => {
   it("parseFilter", () => {
-    expect(parseFilter("전체")).toEqual({ cat: null, sub: null });
-    expect(parseFilter("업무")).toEqual({ cat: "업무", sub: null });
-    expect(parseFilter("업무/빅데이터")).toEqual({ cat: "업무", sub: "빅데이터" });
-    expect(parseFilter("업무/")).toEqual({ cat: "업무", sub: "" });
+    expect(parseFilter("전체")).toEqual({ cat: null, subpath: null });
+    expect(parseFilter("업무")).toEqual({ cat: "업무", subpath: null });
+    expect(parseFilter("업무/빅데이터")).toEqual({ cat: "업무", subpath: "빅데이터" });
+    expect(parseFilter("업무/")).toEqual({ cat: "업무", subpath: "" });
   });
 
   it("visibleTasks: 카테고리·세부분류·미분류 필터", () => {
     const list = [
-      t({ id: "a", category: "업무", subcategory: "빅데이터" }),
-      t({ id: "b", category: "업무" }),
-      t({ id: "c", category: "개인" }),
+      t({ id: "a", category: "업무", subcategory: "로케이션찾기" }),
+      t({ id: "b", category: "업무", subcategory: "이슈분석" }),
+      t({ id: "c", category: "업무" }),
+      t({ id: "d", category: "개인" }),
     ];
-    expect(visibleTasks(list, { filter: "업무" }).map((x) => x.id)).toEqual([
+    const subcats = {
+      개인: [],
+      업무: {
+        빅데이터: ["로케이션찾기", "이슈분석"],
+        AI자동화: [],
+      },
+      공부: [],
+    };
+    // 카테고리 필터
+    expect(visibleTasks(list, { filter: "업무", subcats }).map((x) => x.id)).toEqual([
       "a",
       "b",
+      "c",
     ]);
+    // 부모 세부분류 필터 — 빅데이터의 모든 자식(로케이션찾기, 이슈분석) 포함
     expect(
-      visibleTasks(list, { filter: "업무/빅데이터" }).map((x) => x.id)
-    ).toEqual(["a"]);
-    expect(visibleTasks(list, { filter: "업무/" }).map((x) => x.id)).toEqual([
-      "b",
+      visibleTasks(list, { filter: "업무/빅데이터", subcats }).map((x) => x.id)
+    ).toEqual(["a", "b"]);
+    // 미분류 필터
+    expect(visibleTasks(list, { filter: "업무/", subcats }).map((x) => x.id)).toEqual([
+      "c",
     ]);
   });
 });

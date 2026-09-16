@@ -208,7 +208,10 @@ function periodTasks() {
 /** 기간 스코프 목록에 정렬·필터를 적용한다. 주·월 계획은 목록 위로. */
 const SCOPE_RANK = { month: 0, week: 1, day: 2 };
 function shapeTasks(tasks) {
-  const list = visibleTasks(sortTasks(tasks, state.prefs.sort), state.prefs);
+  const list = visibleTasks(sortTasks(tasks, state.prefs.sort), {
+    ...state.prefs,
+    subcats: state.subcats,
+  });
   if (state.prefs.view === "day") return list;
   // 안정 정렬 — 정해진 정렬 순서를 각 그룹 안에서 유지하며 계획을 앞으로.
   return [...list].sort(
@@ -229,6 +232,27 @@ function render() {
 
   const scoped = periodTasks();
   const shown = shapeTasks(scoped);
+
+  // 현재 필터에 맞는 항목들(hideCompleted 미적용) → 숨겨진 항목은 완료 항목만
+  const { cat, subpath } = parseFilter(prefs.filter);
+  const filtered = scoped.filter((t) => {
+    if (cat && t.category !== cat) return false;
+    if (subpath !== null) {
+      const tsub = typeof t.subcategory === "string" && t.subcategory ? t.subcategory : "";
+      if (subpath === "") {
+        if (tsub !== "") return false;
+      } else {
+        const businessMap = state.subcats?.업무 ?? {};
+        const parentChildren = businessMap[subpath];
+        if (Array.isArray(parentChildren) && parentChildren.length > 0) {
+          if (!parentChildren.includes(tsub)) return false;
+        } else {
+          if (tsub !== subpath) return false;
+        }
+      }
+    }
+    return true;
+  });
 
   renderPeriodBar(els, {
     view: prefs.view,
@@ -261,7 +285,7 @@ function render() {
     },
   });
   renderActiveFilter(els.activeFilter, prefs.filter);
-  renderNotice(els.notice, scoped.length - shown.length);
+  renderNotice(els.notice, filtered.length - shown.length);
 
   els.sort.value = prefs.sort;
   els.hideCompleted.checked = prefs.hideCompleted;
@@ -590,9 +614,10 @@ els.themeToggle.addEventListener("click", () => {
 
 /* ── 내보내기 / 가져오기 함수 ───────────────────────────────── */
 function doExport() {
-  const blob = new Blob([serializeExport(state.tasks)], {
-    type: "application/json",
-  });
+  const blob = new Blob(
+    [serializeExport(state.tasks, els.memo.value, state.subcats)],
+    { type: "application/json" }
+  );
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const stamp = new Date().toISOString().slice(0, 10);
@@ -613,7 +638,7 @@ async function doExportAutomatic() {
   const config = loadBackupConfig();
   const fileName = config.fileName || "task-backup.json";
   const dirHandle = getDirHandle();
-  const data = serializeExport(state.tasks);
+  const data = serializeExport(state.tasks, els.memo.value, state.subcats);
 
   if (dirHandle) {
     try {
@@ -678,6 +703,11 @@ async function doImport(file) {
 
   if (replace) {
     state.editingId = null;
+    // 메모와 세부분류도 함께 교체
+    els.memo.value = result.memo || "";
+    saveMemo(els.memo.value);
+    state.subcats = result.subcategories;
+    saveSubcats(state.subcats);
     commit(result.tasks);
     announce(`${result.tasks.length}개 할 일로 교체했습니다.`);
   } else {
@@ -687,6 +717,19 @@ async function doImport(file) {
       ...result.tasks.filter((t) => !existingIds.has(t.id)),
     ];
     const added = merged.length - state.tasks.length;
+    // 병합할 때는 메모와 세부분류 병합 (기존 데이터 유지, 새 세부분류 추가)
+    if (result.memo) {
+      els.memo.value = (els.memo.value ? els.memo.value + "\n" : "") + result.memo;
+      saveMemo(els.memo.value);
+    }
+    const mergedSubcats = { ...state.subcats };
+    for (const cat of CATEGORIES) {
+      mergedSubcats[cat] = Array.from(
+        new Set([...(state.subcats[cat] || []), ...(result.subcategories[cat] || [])])
+      );
+    }
+    state.subcats = mergedSubcats;
+    saveSubcats(state.subcats);
     commit(merged);
     announce(`${added}개 할 일을 병합했습니다.`);
   }
