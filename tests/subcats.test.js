@@ -11,25 +11,31 @@ import {
 describe("normalizeSubcats", () => {
   it("카테고리 3종 고정 + trim·중복 제거", () => {
     const n = normalizeSubcats({
-      업무: ["  빅데이터 ", "빅데이터", "", "UT일반"],
+      업무: {
+        "  빅데이터 ": [" 로케이션찾기 ", "로케이션찾기"],
+        UT일반: [],
+      },
       개인: "not-array",
       없는카테고리: ["x"],
     });
     expect(Object.keys(n).sort()).toEqual(["개인", "공부", "업무"]);
-    expect(n.업무).toEqual(["빅데이터", "UT일반"]);
+    expect(n.업무).toEqual({
+      빅데이터: ["로케이션찾기"],
+      UT일반: [],
+    });
     expect(n.개인).toEqual([]);
   });
 
   it("기본 시딩값은 업무만 채워져 있다", () => {
     const n = normalizeSubcats(DEFAULT_SUBCATS);
-    expect(n.업무).toContain("빅데이터");
+    expect(Object.keys(n.업무)).toContain("빅데이터");
     expect(n.개인).toEqual([]);
     expect(n.공부).toEqual([]);
   });
 });
 
 describe("add / remove / rename", () => {
-  const base = normalizeSubcats({ 업무: ["빅데이터"], 개인: [], 공부: [] });
+  const base = normalizeSubcats({ 업무: { 빅데이터: [] }, 개인: [], 공부: [] });
 
   it("addSubcat", () => {
     const { map, added } = addSubcat(base, "업무", "  AI/자동화 ");

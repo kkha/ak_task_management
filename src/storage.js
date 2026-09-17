@@ -303,8 +303,8 @@ export function saveSubcats(map, store = safeStorage()) {
 
 /* ── 내보내기 / 가져오기 ─────────────────────────────────────── */
 
-/** 할 일, 메모, 세부분류를 사람이 읽기 좋은 JSON 문자열로 직렬화한다. */
-export function serializeExport(tasks, memo = "", subcategories = {}) {
+/** 할 일, 메모, 세부분류, 자동 백업 설정을 사람이 읽기 좋은 JSON 문자열로 직렬화한다. */
+export function serializeExport(tasks, memo = "", subcategories = {}, backupConfig = null) {
   return JSON.stringify(
     {
       app: "my-task-app",
@@ -314,6 +314,7 @@ export function serializeExport(tasks, memo = "", subcategories = {}) {
       tasks,
       memo,
       subcategories,
+      backupConfig,
     },
     null,
     2
@@ -323,7 +324,7 @@ export function serializeExport(tasks, memo = "", subcategories = {}) {
 /**
  * 가져오기 텍스트를 파싱·검증한다.
  * 최상위가 배열이거나 { tasks: [...] } 형태를 모두 받는다.
- * @returns {{ ok: true, tasks: Array, memo: string, subcategories: object } | { ok: false, error: string }}
+ * @returns {{ ok: true, tasks: Array, memo: string, subcategories: object, backupConfig: object|null } | { ok: false, error: string }}
  */
 export function parseImport(text) {
   let data;
@@ -347,8 +348,11 @@ export function parseImport(text) {
   const memo = typeof data?.memo === "string" ? data.memo : "";
   const subcategories = data?.subcategories && typeof data.subcategories === "object"
     ? normalizeSubcats(data.subcategories)
-    : normalizeSubcats({});
-  return { ok: true, tasks, memo, subcategories };
+    : null;
+  const backupConfig = data?.backupConfig && typeof data.backupConfig === "object"
+    ? data.backupConfig
+    : null;
+  return { ok: true, tasks, memo, subcategories, backupConfig };
 }
 
 /* ── 안전한 스토리지 핸들 ────────────────────────────────────── */

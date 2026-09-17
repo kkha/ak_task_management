@@ -251,12 +251,59 @@ export function initSettingsPanel({
       empty.textContent = "세부분류 없음";
       chips.append(empty);
     }
+
     for (const name of list) {
       const el = document.createElement("span");
       el.className = "kw kw--custom";
+      el.dataset.name = name;
+
       const text = document.createElement("span");
       text.textContent = name;
       el.append(text);
+
+      // 위로 이동 버튼 (▲)
+      const up = document.createElement("button");
+      up.type = "button";
+      up.className = "kw__x";
+      up.textContent = "▲";
+      up.setAttribute("aria-label", `${cat} '${name}' 위로 이동`);
+      if (list.indexOf(name) === 0) {
+        up.disabled = true;
+        up.style.opacity = "0.3";
+        up.style.cursor = "not-allowed";
+      }
+      up.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = list.indexOf(name);
+        if (idx <= 0) return;
+        const nextList = [...list];
+        [nextList[idx - 1], nextList[idx]] = [nextList[idx], nextList[idx - 1]];
+        setSubcats({ ...getSubcats(), [cat]: nextList });
+        renderSubcatPanel();
+      });
+      el.append(up);
+
+      // 아래로 이동 버튼 (▼)
+      const down = document.createElement("button");
+      down.type = "button";
+      down.className = "kw__x";
+      down.textContent = "▼";
+      down.setAttribute("aria-label", `${cat} '${name}' 아래로 이동`);
+      if (list.indexOf(name) === list.length - 1) {
+        down.disabled = true;
+        down.style.opacity = "0.3";
+        down.style.cursor = "not-allowed";
+      }
+      down.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = list.indexOf(name);
+        if (idx === -1 || idx >= list.length - 1) return;
+        const nextList = [...list];
+        [nextList[idx + 1], nextList[idx]] = [nextList[idx], nextList[idx + 1]];
+        setSubcats({ ...getSubcats(), [cat]: nextList });
+        renderSubcatPanel();
+      });
+      el.append(down);
 
       const ren = document.createElement("button");
       ren.type = "button";
@@ -345,6 +392,7 @@ export function initSettingsPanel({
     for (const parent of parents) {
       const parentEl = document.createElement("div");
       parentEl.className = "kwcat__parent";
+      parentEl.dataset.parent = parent;
 
       const parentHeader = document.createElement("div");
       parentHeader.className = "kwcat__parent-header";
@@ -352,6 +400,63 @@ export function initSettingsPanel({
       const parentText = document.createElement("span");
       parentText.className = "kwcat__parent-text";
       parentText.textContent = parent;
+      parentHeader.append(parentText);
+
+      // 대분류 위로 이동 버튼 (▲)
+      const parentUp = document.createElement("button");
+      parentUp.type = "button";
+      parentUp.className = "kw__x";
+      parentUp.textContent = "▲";
+      parentUp.setAttribute("aria-label", `${cat} '${parent}' 위로 이동`);
+      if (parents.indexOf(parent) === 0) {
+        parentUp.disabled = true;
+        parentUp.style.opacity = "0.3";
+        parentUp.style.cursor = "not-allowed";
+      }
+      parentUp.addEventListener("click", () => {
+        const idx = parents.indexOf(parent);
+        if (idx <= 0) return;
+        const nextParents = [...parents];
+        [nextParents[idx - 1], nextParents[idx]] = [nextParents[idx], nextParents[idx - 1]];
+
+        const currentSubcats = getSubcats();
+        const nextWumup = {};
+        const originalWumup = currentSubcats.업무 || {};
+        for (const p of nextParents) {
+          nextWumup[p] = originalWumup[p] || [];
+        }
+        setSubcats({ ...currentSubcats, [cat]: nextWumup });
+        renderSubcatPanel();
+      });
+      parentHeader.append(parentUp);
+
+      // 대분류 아래로 이동 버튼 (▼)
+      const parentDown = document.createElement("button");
+      parentDown.type = "button";
+      parentDown.className = "kw__x";
+      parentDown.textContent = "▼";
+      parentDown.setAttribute("aria-label", `${cat} '${parent}' 아래로 이동`);
+      if (parents.indexOf(parent) === parents.length - 1) {
+        parentDown.disabled = true;
+        parentDown.style.opacity = "0.3";
+        parentDown.style.cursor = "not-allowed";
+      }
+      parentDown.addEventListener("click", () => {
+        const idx = parents.indexOf(parent);
+        if (idx === -1 || idx >= parents.length - 1) return;
+        const nextParents = [...parents];
+        [nextParents[idx + 1], nextParents[idx]] = [nextParents[idx], nextParents[idx + 1]];
+
+        const currentSubcats = getSubcats();
+        const nextWumup = {};
+        const originalWumup = currentSubcats.업무 || {};
+        for (const p of nextParents) {
+          nextWumup[p] = originalWumup[p] || [];
+        }
+        setSubcats({ ...currentSubcats, [cat]: nextWumup });
+        renderSubcatPanel();
+      });
+      parentHeader.append(parentDown);
 
       const parentRen = document.createElement("button");
       parentRen.type = "button";
@@ -369,6 +474,7 @@ export function initSettingsPanel({
           renderSubcatPanel();
         }
       });
+      parentHeader.append(parentRen);
 
       const parentDel = document.createElement("button");
       parentDel.type = "button";
@@ -379,8 +485,7 @@ export function initSettingsPanel({
         setSubcats(removeSubcat(getSubcats(), cat, parent));
         renderSubcatPanel();
       });
-
-      parentHeader.append(parentText, parentRen, parentDel);
+      parentHeader.append(parentDel);
       parentEl.append(parentHeader);
 
       const children = childrenOf(getSubcats(), parent);
@@ -390,9 +495,62 @@ export function initSettingsPanel({
       for (const child of children) {
         const childEl = document.createElement("span");
         childEl.className = "kw kw--custom kwcat__child";
+        childEl.dataset.child = child;
+        childEl.dataset.parent = parent;
+
         const childText = document.createElement("span");
         childText.textContent = child;
         childEl.append(childText);
+
+        // 소분류 위로 이동 버튼 (▲)
+        const childUp = document.createElement("button");
+        childUp.type = "button";
+        childUp.className = "kw__x";
+        childUp.textContent = "▲";
+        childUp.setAttribute("aria-label", `${cat} '${parent}' 아래 '${child}' 위로 이동`);
+        if (children.indexOf(child) === 0) {
+          childUp.disabled = true;
+          childUp.style.opacity = "0.3";
+          childUp.style.cursor = "not-allowed";
+        }
+        childUp.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const idx = children.indexOf(child);
+          if (idx <= 0) return;
+          const nextChildren = [...children];
+          [nextChildren[idx - 1], nextChildren[idx]] = [nextChildren[idx], nextChildren[idx - 1]];
+
+          const currentSubcats = getSubcats();
+          const nextWumup = { ...currentSubcats.업무, [parent]: nextChildren };
+          setSubcats({ ...currentSubcats, [cat]: nextWumup });
+          renderSubcatPanel();
+        });
+        childEl.append(childUp);
+
+        // 소분류 아래로 이동 버튼 (▼)
+        const childDown = document.createElement("button");
+        childDown.type = "button";
+        childDown.className = "kw__x";
+        childDown.textContent = "▼";
+        childDown.setAttribute("aria-label", `${cat} '${parent}' 아래 '${child}' 아래로 이동`);
+        if (children.indexOf(child) === children.length - 1) {
+          childDown.disabled = true;
+          childDown.style.opacity = "0.3";
+          childDown.style.cursor = "not-allowed";
+        }
+        childDown.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const idx = children.indexOf(child);
+          if (idx === -1 || idx >= children.length - 1) return;
+          const nextChildren = [...children];
+          [nextChildren[idx + 1], nextChildren[idx]] = [nextChildren[idx], nextChildren[idx + 1]];
+
+          const currentSubcats = getSubcats();
+          const nextWumup = { ...currentSubcats.업무, [parent]: nextChildren };
+          setSubcats({ ...currentSubcats, [cat]: nextWumup });
+          renderSubcatPanel();
+        });
+        childEl.append(childDown);
 
         const childRen = document.createElement("button");
         childRen.type = "button";

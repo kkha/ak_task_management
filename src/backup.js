@@ -207,7 +207,7 @@ export function initBackupPanel({
   saveBtn.addEventListener("click", () => {
     const newConfig = {
       enabled: enableCheck.checked,
-      dayOfWeek: parseInt(daySelect.value),
+      dayOfWeek: 0,
       hour: parseInt(hourSelect.value),
       minute: parseInt(minSelect.value),
       fileName: fileNameInput.value.trim() || "task-backup.json",

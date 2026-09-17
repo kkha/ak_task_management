@@ -216,20 +216,20 @@ describe("sanitizeTasks", () => {
 describe("loadSubcats / saveSubcats", () => {
   it("값이 없으면 기본 시딩값(업무만 채워짐)", () => {
     const s = loadSubcats(fakeStore());
-    expect(s.업무).toContain("빅데이터");
+    expect(Object.keys(s.업무)).toContain("빅데이터");
     expect(s.개인).toEqual([]);
   });
 
   it("저장한 것을 정규화해서 읽는다", () => {
     const store = fakeStore();
-    saveSubcats({ 업무: ["  A ", "A", "B"], 개인: [], 공부: ["C"] }, store);
-    expect(loadSubcats(store)).toEqual({ 개인: [], 업무: ["A", "B"], 공부: ["C"] });
+    saveSubcats({ 업무: { A: [], B: [] }, 개인: [], 공부: ["C"] }, store);
+    expect(loadSubcats(store)).toEqual({ 개인: [], 업무: { A: [], B: [] }, 공부: ["C"] });
   });
 
   it("손상된 JSON이면 경고 후 기본값", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const store = fakeStore({ "task-app.subcategories": "{bad" });
-    expect(loadSubcats(store).업무).toContain("빅데이터");
+    expect(Object.keys(loadSubcats(store).업무)).toContain("빅데이터");
   });
 });
 
@@ -352,7 +352,17 @@ describe("serializeExport / parseImport (왕복)", () => {
     const subcats = { 개인: [], 업무: { 빅데이터: [] }, 공부: [] };
     const json = serializeExport(tasks, memo, subcats);
     const result = parseImport(json);
-    expect(result).toEqual({ ok: true, tasks, memo, subcategories: subcats });
+    expect(result).toEqual({ ok: true, tasks, memo, subcategories: subcats, backupConfig: null });
+  });
+
+  it("내보낸 백업 설정도 함께 다시 가져올 수 있다", () => {
+    const tasks = [validTask];
+    const memo = "테스트 메모";
+    const subcats = { 개인: [], 업무: { 빅데이터: [] }, 공부: [] };
+    const bConfig = { enabled: true, hour: 14, minute: 0, fileName: "custom.json" };
+    const json = serializeExport(tasks, memo, subcats, bConfig);
+    const result = parseImport(json);
+    expect(result).toEqual({ ok: true, tasks, memo, subcategories: subcats, backupConfig: bConfig });
   });
 
   it("내보내기 JSON에 appVersion·스키마 버전이 들어간다", () => {
@@ -365,6 +375,23 @@ describe("serializeExport / parseImport (왕복)", () => {
     expect(parseImport(JSON.stringify([validTask]))).toMatchObject({
       ok: true,
       tasks: [validTask],
+    });
+  });
+
+  it("세부분류가 없는 이전 버전 백업을 가져오면 subcategories가 null이 된다", () => {
+    const json = JSON.stringify({
+      app: "my-task-app",
+      version: 5,
+      tasks: [validTask],
+      memo: "테스트 메모",
+    });
+    const result = parseImport(json);
+    expect(result).toEqual({
+      ok: true,
+      tasks: [validTask],
+      memo: "테스트 메모",
+      subcategories: null,
+      backupConfig: null,
     });
   });
 

@@ -77,7 +77,7 @@ import {
 } from "./classify.js";
 import { initSettingsPanel } from "./settings.js";
 import { initHistory } from "./history.js";
-import { isBackupTime, loadBackupConfig, getDirHandle } from "./backup.js";
+import { isBackupTime, loadBackupConfig, getDirHandle, saveBackupConfig } from "./backup.js";
 
 /* ── 런타임 상태 ────────────────────────────────────────────── */
 const now = new Date();
@@ -144,6 +144,7 @@ const els = {
   historyBody: document.getElementById("history-body"),
   sort: document.getElementById("sort-select"),
   hideCompleted: document.getElementById("hide-completed"),
+  taskCount: document.getElementById("task-count"),
   themeToggle: document.getElementById("theme-toggle"),
   exportBtn: document.getElementById("export-btn"),
   importBtn: document.getElementById("import-btn"),
@@ -165,7 +166,7 @@ const THEME_CYCLE = ["system", "light", "dark"];
 const THEME_LABEL = { system: "자동", light: "밝게", dark: "어둡게" };
 
 /* ── 상태 변경 ─────────────────────────────────────────────── */
-function commit(nextTasks) {
+function commit(nextTasks = state.tasks) {
   state.tasks = nextTasks;
   saveTasks(state.tasks);
   render();
@@ -296,6 +297,10 @@ function render() {
   els.form.hidden = timeView;
   els.sort.parentElement.hidden = timeView;
   els.hideCompleted.parentElement.hidden = timeView;
+  if (els.taskCount) {
+    els.taskCount.hidden = timeView;
+    els.taskCount.textContent = `총 ${shown.length}개`;
+  }
 
   els.sort.value = prefs.sort;
   els.hideCompleted.checked = prefs.hideCompleted;
@@ -596,13 +601,13 @@ els.categoryTree.addEventListener("click", (e) => {
   // 트리에서 고른 분류를 입력창에도 반영한다 → 그대로 "추가"하면 그 분류로 저장.
   // (세부분류 이름에 "/"가 들어갈 수 있으므로 첫 "/"만 기준으로 나눈다)
   if (filter !== "전체") {
-    const { cat, sub } = parseFilter(filter);
+    const { cat, subpath } = parseFilter(filter);
     els.category.value = cat;
     categoryTouched = true; // 자동 분류가 이 선택을 덮어쓰지 않게
     els.classifyHint.hidden = true;
     syncComposerSubcats();
     els.subcategory.value =
-      sub && (state.subcats[cat] ?? []).includes(sub) ? sub : "";
+      subpath && Array.from(els.subcategory.options).some((o) => o.value === subpath) ? subpath : "";
   }
   setPrefs({ filter });
 });
@@ -648,7 +653,7 @@ els.themeToggle.addEventListener("click", () => {
 /* ── 내보내기 / 가져오기 함수 ───────────────────────────────── */
 function doExport() {
   const blob = new Blob(
-    [serializeExport(state.tasks, els.memo.value, state.subcats)],
+    [serializeExport(state.tasks, els.memo.value, state.subcats, loadBackupConfig())],
     { type: "application/json" }
   );
   const url = URL.createObjectURL(blob);
@@ -671,7 +676,7 @@ async function doExportAutomatic() {
   const config = loadBackupConfig();
   const fileName = config.fileName || "task-backup.json";
   const dirHandle = getDirHandle();
-  const data = serializeExport(state.tasks, els.memo.value, state.subcats);
+  const data = serializeExport(state.tasks, els.memo.value, state.subcats, config);
 
   if (dirHandle) {
     try {
@@ -739,8 +744,14 @@ async function doImport(file) {
     // 메모와 세부분류도 함께 교체
     els.memo.value = result.memo || "";
     saveMemo(els.memo.value);
-    state.subcats = result.subcategories;
-    saveSubcats(state.subcats);
+    if (result.subcategories) {
+      state.subcats = result.subcategories;
+      saveSubcats(state.subcats);
+    }
+    if (result.backupConfig) {
+      saveBackupConfig(result.backupConfig);
+      updateBackupStatus();
+    }
     commit(result.tasks);
     announce(`${result.tasks.length}개 할 일로 교체했습니다.`);
   } else {
@@ -755,14 +766,27 @@ async function doImport(file) {
       els.memo.value = (els.memo.value ? els.memo.value + "\n" : "") + result.memo;
       saveMemo(els.memo.value);
     }
-    const mergedSubcats = { ...state.subcats };
-    for (const cat of CATEGORIES) {
-      mergedSubcats[cat] = Array.from(
-        new Set([...(state.subcats[cat] || []), ...(result.subcategories[cat] || [])])
-      );
+    if (result.subcategories) {
+      const mergedSubcats = { ...state.subcats };
+      for (const cat of CATEGORIES) {
+        if (cat === "업무") {
+          const targetWumup = { ...(state.subcats.업무 || {}) };
+          const sourceWumup = result.subcategories.업무 || {};
+          for (const [parent, children] of Object.entries(sourceWumup)) {
+            const targetChildren = Array.isArray(targetWumup[parent]) ? targetWumup[parent] : [];
+            const sourceChildren = Array.isArray(children) ? children : [];
+            targetWumup[parent] = Array.from(new Set([...targetChildren, ...sourceChildren]));
+          }
+          mergedSubcats.업무 = targetWumup;
+        } else {
+          mergedSubcats[cat] = Array.from(
+            new Set([...(state.subcats[cat] || []), ...(result.subcategories[cat] || [])])
+          );
+        }
+      }
+      state.subcats = mergedSubcats;
+      saveSubcats(state.subcats);
     }
-    state.subcats = mergedSubcats;
-    saveSubcats(state.subcats);
     commit(merged);
     announce(`${added}개 할 일을 병합했습니다.`);
   }
@@ -773,7 +797,7 @@ function idFromEvent(e) {
   const li = e.target.closest("li[data-id]");
   if (li) return li.dataset.id;
   // 시간별 보기: 메모 영역에서 호출된 경우 형제 또는 부모의 task 엘리먼트 찾기
-  let current = e.target.closest(".time-slot__task-notes");
+  const current = e.target.closest(".time-slot__task-notes");
   if (current) {
     const taskEl = current.previousElementSibling?.closest("div[data-id].time-slot__task") ||
                    current.parentElement?.querySelector("div[data-id].time-slot__task");

@@ -16,7 +16,7 @@ describe("VERSION", () => {
   });
 
   it("APP_TITLE 은 이름 + v버전", () => {
-    expect(APP_TITLE).toBe(`AK Task Management v${VERSION}`);
+    expect(APP_TITLE).toBe(`Task Management v${VERSION}`);
   });
 
   it("CHANGELOG.md 에 현재 버전 항목이 있다", () => {

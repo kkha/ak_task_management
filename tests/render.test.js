@@ -55,7 +55,7 @@ describe("renderList", () => {
     renderList(list, [t({ id: "a", category: "업무", subcategory: "빅데이터" })], {
       editingId: "a",
       manualSort: true,
-      subcats: { 개인: [], 업무: ["빅데이터", "UT과제"], 공부: [] },
+      subcats: { 개인: [], 업무: { "빅데이터": [], "UT과제": [] }, 공부: [] },
       emptyKind: "filtered",
     });
     const card = list.querySelector(".task--editing");
@@ -381,7 +381,7 @@ describe("renderPeriodBar", () => {
 });
 
 describe("renderCategoryTree", () => {
-  const subcats = { 개인: [], 업무: ["빅데이터", "UT과제"], 공부: [] };
+  const subcats = { 개인: [], 업무: { "빅데이터": [], "UT과제": [] }, 공부: [] };
   const counts = {
     전체: 5,
     개인: { 전체: 1, 미분류: 1 },
@@ -391,7 +391,12 @@ describe("renderCategoryTree", () => {
 
   it("전체 + 카테고리 3 + 세부분류 + 미분류 행, 개수 표기", () => {
     const box = document.createElement("div");
-    renderCategoryTree(box, { subcats, counts, activeFilter: "전체" });
+    renderCategoryTree(box, {
+      subcats,
+      counts,
+      activeFilter: "전체",
+      expandedNodes: new Set(["cat_개인", "cat_업무", "cat_공부"]),
+    });
     const rows = [...box.querySelectorAll("button[data-filter]")];
     const filters = rows.map((r) => r.dataset.filter);
     expect(filters).toContain("전체");
@@ -406,7 +411,12 @@ describe("renderCategoryTree", () => {
 
   it("activeFilter 행에 is-active", () => {
     const box = document.createElement("div");
-    renderCategoryTree(box, { subcats, counts, activeFilter: "업무/빅데이터" });
+    renderCategoryTree(box, {
+      subcats,
+      counts,
+      activeFilter: "업무/빅데이터",
+      expandedNodes: new Set(["cat_개인", "cat_업무", "cat_공부"]),
+    });
     const active = box.querySelector(".is-active");
     expect(active.dataset.filter).toBe("업무/빅데이터");
   });

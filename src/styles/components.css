@@ -898,6 +898,12 @@ span.cal-cell {
   flex-wrap: wrap;
 }
 
+.toolbar__count {
+  font-size: 0.82rem;
+  font-weight: 550;
+  color: var(--text-muted);
+}
+
 .toggle,
 .field {
   display: inline-flex;
