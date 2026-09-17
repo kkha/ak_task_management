@@ -7,7 +7,7 @@
  *    `tests/version.test.js`가 두 값이 같은지 검사한다.
  *    변경 이력은 `CHANGELOG.md`에 남긴다.
  */
-export const VERSION = "4.4.0";
+export const VERSION = "4.5.0";
 
 /** 표시용: "Task Management v3.3.0" */
 export const APP_TITLE = `Task Management v${VERSION}`;

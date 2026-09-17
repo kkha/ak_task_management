@@ -12,6 +12,53 @@ import {
 } from "./subcats.js";
 import { initBackupPanel } from "./backup.js";
 
+/** 세부분류 이름 변경 후 기존 할 일들의 subcategory를 마이그레이션한다. */
+function migrateTasksAfterSubcatRename(getTasks, setTasks, cat, fromName, toName, parentName) {
+  if (!getTasks || !setTasks) return;
+  const tasks = getTasks();
+  let migrated = false;
+  const updated = tasks.map((task) => {
+    if (task.category !== cat || !task.subcategory) return task;
+
+    // 개인/공부: 직접 비교
+    if (cat !== "업무") {
+      if (task.subcategory === fromName) {
+        migrated = true;
+        return { ...task, subcategory: toName };
+      }
+      return task;
+    }
+
+    // 업무: parentName이 있으면 부모 아래 자식 이름 변경, 없으면 부모 이름 변경
+    if (parentName) {
+      const i = task.subcategory.indexOf("/");
+      if (i !== -1) {
+        const parent = task.subcategory.slice(0, i);
+        const child = task.subcategory.slice(i + 1);
+        if (parent === parentName && child === fromName) {
+          migrated = true;
+          return { ...task, subcategory: `${parent}/${toName}` };
+        }
+      }
+    } else {
+      const i = task.subcategory.indexOf("/");
+      if (i !== -1) {
+        const parent = task.subcategory.slice(0, i);
+        if (parent === fromName) {
+          const child = task.subcategory.slice(i + 1);
+          migrated = true;
+          return { ...task, subcategory: `${toName}/${child}` };
+        }
+      }
+    }
+    return task;
+  });
+
+  if (migrated) {
+    setTasks(updated);
+  }
+}
+
 /** 통합 설정 다이얼로그 초기화. */
 export function initSettingsPanel({
   dialog,
@@ -20,6 +67,8 @@ export function initSettingsPanel({
   setConfig,
   getSubcats,
   setSubcats,
+  getTasks,
+  setTasks,
   onExport,
   onImport,
   onSaveBackup,
@@ -220,6 +269,8 @@ export function initSettingsPanel({
         const { map, renamed } = renameSubcat(getSubcats(), cat, name, to);
         if (renamed) {
           setSubcats(map);
+          // 기존 할 일들의 subcategory도 함께 업데이트
+          migrateTasksAfterSubcatRename(getTasks, setTasks, cat, name, to, null);
           renderSubcatPanel();
         }
       });
@@ -313,6 +364,8 @@ export function initSettingsPanel({
         const { map, renamed } = renameSubcat(getSubcats(), cat, parent, to);
         if (renamed) {
           setSubcats(map);
+          // 기존 할 일들의 subcategory도 함께 업데이트
+          migrateTasksAfterSubcatRename(getTasks, setTasks, cat, parent, to, null);
           renderSubcatPanel();
         }
       });
@@ -361,6 +414,8 @@ export function initSettingsPanel({
           );
           if (renamed) {
             setSubcats(map);
+            // 기존 할 일들의 subcategory도 함께 업데이트
+            migrateTasksAfterSubcatRename(getTasks, setTasks, cat, child, to, parent);
             renderSubcatPanel();
           }
         });

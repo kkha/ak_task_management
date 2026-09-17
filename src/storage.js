@@ -6,7 +6,7 @@ import { DEFAULT_SUBCATS, normalizeSubcats } from "./subcats.js";
 import { isISODate, isoDateFromMillis } from "./dates.js";
 import { VERSION } from "./version.js";
 
-export const VIEWS = ["day", "week", "month"];
+export const VIEWS = ["day", "week", "month", "time"];
 
 /* ──────────────────────────────────────────────────────────────
  * 데이터 레이어. localStorage 입출력과 경계 입력 검증.
@@ -25,7 +25,7 @@ export const DEFAULT_PREFS = Object.freeze({
   sort: "manual",
   hideCompleted: false,
   theme: "system", // "system" | "light" | "dark"
-  view: "day", // "day" | "week"
+  view: "day", // "day" | "week" | "month" | "time"
 });
 
 /**
@@ -56,8 +56,18 @@ export function isValidTask(v) {
     (v.recurrence === undefined ||
       (!!v.recurrence &&
         typeof v.recurrence === "object" &&
-        RECUR_FREQS.includes(v.recurrence.freq)))
+        RECUR_FREQS.includes(v.recurrence.freq))) &&
+    (v.startTime === undefined || isValidTimeHM(v.startTime))
   );
+}
+
+/** HH:MM 형식의 유효한 시간인지 검사한다. */
+export function isValidTimeHM(v) {
+  if (typeof v !== "string" || v.length !== 5) return false;
+  const [h, m] = v.split(":");
+  const hh = parseInt(h, 10);
+  const mm = parseInt(m, 10);
+  return !isNaN(hh) && !isNaN(mm) && hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
 }
 
 /** recurrence 규칙 정규화(경계 검증용). 유효하지 않으면 null. */
@@ -88,6 +98,7 @@ const OPTIONAL_TASK_KEYS = [
   "doneAt",
   "series",
   "recurrence",
+  "startTime",
 ];
 
 /**

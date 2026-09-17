@@ -63,7 +63,6 @@ export function isBackupTime(config) {
   if (!config.enabled) return false;
   const now = new Date();
   return (
-    now.getDay() === config.dayOfWeek &&
     now.getHours() === config.hour &&
     now.getMinutes() === config.minute
   );
@@ -133,26 +132,7 @@ export function initBackupPanel({
   folderDiv.append(folderLabel, folderBtn);
   form.append(folderDiv);
 
-  // 요일 선택
-  const dayDiv = document.createElement("div");
-  dayDiv.className = "backup-row";
-  const dayLabel = document.createElement("label");
-  dayLabel.className = "field";
-  const daySpan = document.createElement("span");
-  daySpan.textContent = "매주";
-  dayLabel.append(daySpan);
-  const daySelect = document.createElement("select");
-  const days = ["일", "월", "화", "수", "목", "금", "토"];
-  days.forEach((name, idx) => {
-    const opt = document.createElement("option");
-    opt.value = idx;
-    opt.textContent = name;
-    if (idx === config.dayOfWeek) opt.selected = true;
-    daySelect.append(opt);
-  });
-  dayLabel.append(daySelect);
-  dayDiv.append(dayLabel);
-  form.append(dayDiv);
+  // 매일 백업 설정 (요일 선택 제거)
 
   // 시간:분 선택
   const timeDiv = document.createElement("div");
@@ -212,7 +192,7 @@ export function initBackupPanel({
   const infoText = document.createElement("p");
   const fileName = config.fileName || "task-backup.json";
   if (config.enabled) {
-    infoText.textContent = `⏰ 매주 ${days[config.dayOfWeek]}요일 ${String(config.hour).padStart(2, "0")}:${String(config.minute).padStart(2, "0")}에 ${fileName} 파일로 자동 백업됩니다.`;
+    infoText.textContent = `⏰ 매일 ${String(config.hour).padStart(2, "0")}:${String(config.minute).padStart(2, "0")}에 ${fileName} 파일로 자동 백업됩니다.`;
   } else {
     infoText.textContent = "⏸️ 자동 백업이 비활성화되어 있습니다.";
   }

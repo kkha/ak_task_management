@@ -718,6 +718,10 @@ span.cal-cell {
   padding: 0.7rem;
 }
 
+.composer[hidden] {
+  display: none;
+}
+
 .composer__input {
   flex: 1;
   min-width: 0;
@@ -868,6 +872,14 @@ span.cal-cell {
   border: 1px solid var(--accent);
   border-radius: var(--radius-pill);
   cursor: pointer;
+}
+
+.toggle[hidden] {
+  display: none;
+}
+
+.field[hidden] {
+  display: none;
 }
 
 .active-filter[hidden] {
@@ -1255,7 +1267,9 @@ span.cal-cell {
 .edit-priority,
 .edit-scope,
 .edit-date,
-.edit-enddate {
+.edit-enddate,
+.edit-time-assign,
+.edit-time {
   padding: 0.45rem 0.5rem;
   font: inherit;
   font-size: 0.85rem;
@@ -1275,6 +1289,13 @@ span.cal-cell {
 
 .edit-daterange__sep {
   color: var(--text-muted);
+}
+
+.edit-disabled {
+  background-color: #E8E8E8 !important;
+  color: #999999 !important;
+  opacity: 0.6;
+  cursor: not-allowed !important;
 }
 
 .edit-notes {
@@ -1545,4 +1566,157 @@ span.cal-cell {
   flex-shrink: 0;
   color: var(--text-muted);
   font-size: 0.7rem;
+}
+
+/* 시간별 뷰 ────────────────────────────────────────── */
+.time-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.time-view__unscheduled {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  background-color: var(--bg-alt);
+}
+
+.time-view__unscheduled-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.time-view__unscheduled-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.time-view__unscheduled-list .task {
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: move;
+  transition: all 0.2s ease;
+}
+
+.time-view__unscheduled-list .task:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.time-view__grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.time-slot {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  border-bottom: 1px solid var(--border);
+  min-height: 150px;
+}
+
+.time-slot:last-child {
+  border-bottom: none;
+}
+
+.time-slot__time {
+  padding: 0.75rem;
+  background-color: var(--bg-alt);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.time-slot__tasks {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.time-slot__tasks--empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.time-slot__tasks--drag-over {
+  background-color: var(--accent-light, rgba(99, 102, 241, 0.2));
+  border-radius: 4px;
+}
+
+.time-slot__task {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem;
+  background-color: var(--accent-light, rgba(99, 102, 241, 0.1));
+  border: 1px solid var(--accent-border, rgba(99, 102, 241, 0.2));
+  border-radius: 4px;
+  cursor: default;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.time-slot__task:hover {
+  background-color: var(--accent-light, rgba(99, 102, 241, 0.15));
+  border-color: var(--accent);
+}
+
+.time-slot__task.task--editing {
+  background-color: var(--accent-light, rgba(99, 102, 241, 0.2));
+  border-color: var(--accent);
+}
+
+.time-slot__task {
+  background-color: #F0F0F0;
+  color: #000000;
+  border: none !important;
+}
+
+.time-slot__task-text {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 시간 할당 체크박스 ────────────────────────────────────────── */
+.task__time-assign {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.task__time-assign:hover {
+  background-color: var(--bg-alt);
+}
+
+.task__time-assign input[type="checkbox"] {
+  cursor: pointer;
 }

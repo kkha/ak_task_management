@@ -12,6 +12,9 @@ import {
   taskScope,
   taskEndDate,
   recurrenceLabel,
+  getTimeSlots,
+  tasksForTimeView,
+  tasksInTimeSlot,
 } from "./tasks.js";
 import {
   WEEKDAY_NAMES,
@@ -119,7 +122,7 @@ function iconButton(cls, label, aria) {
 
 /** 표시 모드 <li>. */
 function renderDisplayItem(task, opts) {
-  const { manualSort, showDate, todayISO, viewISO, expandedNotes } = opts;
+  const { manualSort, showDate, todayISO, viewISO, expandedNotes, view } = opts;
   const status = taskStatus(task);
   const prio = taskPriority(task);
 
@@ -164,7 +167,7 @@ function renderDisplayItem(task, opts) {
 
   const text = document.createElement("span");
   text.className = "task__text";
-  text.textContent = task.text;
+  text.textContent = task.startTime ? `${task.text} (${task.startTime})` : task.text;
   text.title = "더블클릭하여 수정";
 
   const hasNotes = typeof task.notes === "string" && task.notes.trim() !== "";
@@ -176,6 +179,7 @@ function renderDisplayItem(task, opts) {
   if (hasNotes) notesToggle.classList.add("has-notes");
 
   main.append(handle, checkLabel, doing);
+
   if (prio !== "normal") {
     const mark = document.createElement("span");
     mark.className = `task__prio task__prio--${prio}`;
@@ -203,13 +207,13 @@ function renderDisplayItem(task, opts) {
     main.append(rec);
   }
 
-  const scope = taskScope(task);
   const end = taskEndDate(task);
-  const multiDay = scope === "day" && end > task.date;
+  const taskScope_ = taskScope(task);
+  const multiDay = taskScope_ === "day" && end > task.date;
 
   if (showDate) {
     const badge = document.createElement("span");
-    if (scope === "day") {
+    if (taskScope_ === "day") {
       badge.className = "task__date";
       badge.textContent = multiDay
         ? formatDaySpan(task.date, end, todayISO)
@@ -218,12 +222,12 @@ function renderDisplayItem(task, opts) {
         badge.classList.add("task__date--today");
       }
     } else {
-      badge.className = `task__scope task__scope--${scope}`;
+      badge.className = `task__scope task__scope--${taskScope_}`;
       badge.textContent =
-        scope === "week"
+        taskScope_ === "week"
           ? `WK${weekOfYear(task.date)}`
           : `${parseISO(task.date).getMonth() + 1}월`;
-      badge.title = scope === "week" ? "이번 주 계획" : "이번 달 계획";
+      badge.title = taskScope_ === "week" ? "이번 주 계획" : "이번 달 계획";
     }
     main.append(badge);
   } else if (multiDay && viewISO) {
@@ -340,7 +344,70 @@ function renderEditItem(task, { subcats }) {
   tilde.className = "edit-daterange__sep";
   tilde.textContent = "~";
   dateWrap.append(scopeSel, dateIn, tilde, endIn);
-  row3.append(dateWrap, saveBtn, cancelBtn);
+
+  // 시간할당 드롭다운
+  const timeAssignSel = document.createElement("select");
+  timeAssignSel.className = "edit-time-assign";
+  timeAssignSel.setAttribute("aria-label", "시간할당");
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "시간미할당";
+  opt0.selected = !task.startTime;
+  timeAssignSel.append(opt0);
+  const opt1 = document.createElement("option");
+  opt1.value = "시간할당";
+  opt1.textContent = "시간할당";
+  opt1.selected = !!task.startTime;
+  timeAssignSel.append(opt1);
+
+  // 시간 선택 드롭다운 (처음엔 숨김)
+  const timeSel = document.createElement("select");
+  timeSel.className = "edit-time";
+  timeSel.setAttribute("aria-label", "시간");
+  timeSel.hidden = !task.startTime;
+  for (let h = 8; h <= 23; h++) {
+    const opt = document.createElement("option");
+    const timeStr = String(h).padStart(2, "0") + ":00";
+    opt.value = timeStr;
+    opt.textContent = timeStr;
+    if (task.startTime === timeStr) opt.selected = true;
+    timeSel.append(opt);
+  }
+
+  // scope 선택 시 endDate, 시간할당 활성화/비활성화
+  scopeSel.addEventListener("change", () => {
+    const isNonDayScope = scopeSel.value !== "day";
+    endIn.disabled = isNonDayScope;
+    timeAssignSel.disabled = isNonDayScope;
+    timeSel.disabled = isNonDayScope;
+    if (isNonDayScope) {
+      endIn.classList.add("edit-disabled");
+      timeAssignSel.classList.add("edit-disabled");
+      timeSel.classList.add("edit-disabled");
+    } else {
+      endIn.classList.remove("edit-disabled");
+      timeAssignSel.classList.remove("edit-disabled");
+      timeSel.classList.remove("edit-disabled");
+    }
+  });
+
+  // 초기 상태 설정 (주별/월별일 때 비활성화)
+  const isNonDayScope = taskScope(task) !== "day";
+  if (isNonDayScope) {
+    endIn.disabled = true;
+    timeAssignSel.disabled = true;
+    timeSel.disabled = true;
+    endIn.classList.add("edit-disabled");
+    timeAssignSel.classList.add("edit-disabled");
+    timeSel.classList.add("edit-disabled");
+  }
+
+  // 시간할당 선택 시 시간 선택 드롭다운 표시/숨김
+  timeAssignSel.addEventListener("change", () => {
+    timeSel.hidden = timeAssignSel.value !== "시간할당";
+  });
+
+  row3.append(dateWrap, timeAssignSel, timeSel, saveBtn, cancelBtn);
 
   li.append(row1, row2, row3, notes);
   return li;
@@ -618,18 +685,24 @@ function periodLabelText(view, anchorISO, todayISO) {
 }
 
 /**
- * 기간 바: 현재 보고 있는 일/주/월 라벨 + 보기 토글 활성 상태.
- * @param {{periodLabel, viewDay, viewWeek, viewMonth: HTMLElement}} els
- * @param {{view: "day"|"week"|"month", anchorISO: string, todayISO: string}} opts
+ * 기간 바: 현재 보고 있는 일/주/월/시간 라벨 + 보기 토글 활성 상태.
+ * @param {{periodLabel, viewDay, viewWeek, viewMonth, viewTime: HTMLElement}} els
+ * @param {{view: "day"|"week"|"month"|"time", anchorISO: string, todayISO: string}} opts
  */
 export function renderPeriodBar(els, { view, anchorISO, todayISO }) {
-  els.periodLabel.textContent = periodLabelText(view, anchorISO, todayISO);
+  if (view === "time") {
+    els.periodLabel.textContent = `시간별 · ${formatDayLabel(anchorISO, todayISO)}`;
+  } else {
+    els.periodLabel.textContent = periodLabelText(view, anchorISO, todayISO);
+  }
 
   for (const [btn, mode] of [
     [els.viewDay, "day"],
     [els.viewWeek, "week"],
     [els.viewMonth, "month"],
+    [els.viewTime, "time"],
   ]) {
+    if (!btn) continue; // viewTime이 없을 수도 있음
     const on = mode === view;
     btn.classList.toggle("is-active", on);
     btn.setAttribute("aria-pressed", String(on));
@@ -788,6 +861,137 @@ export function renderWeekAnalysis(containerEl, { weekTasks, week }) {
 
   // 그래프를 맨 앞에 삽입
   breakdown.insertBefore(graph, breakdown.firstChild);
+}
+
+/**
+ * 시간별 뷰. 06:00 ~ 22:00을 30분 슬롯으로 표시.
+ * @param {{
+ *   listEl: Element, allTasks: Array, anchorDate: string,
+ *   editingId: string|null, expandedNotes: Set, onDragStart: Function, onTaskClick: Function,
+ * }} opts
+ */
+export function renderTimeView(listEl, allTasks, opts) {
+  const { editingId, expandedNotes, onDragStart, onTaskClick } = opts;
+  const { withTime, unscheduled } = tasksForTimeView(allTasks, opts.anchorDate);
+  const timeSlots = getTimeSlots();
+
+  listEl.replaceChildren();
+
+  const container = document.createElement("div");
+  container.className = "time-view";
+
+  // ── 시간 슬롯 그리드
+  const gridSection = document.createElement("section");
+  gridSection.className = "time-view__grid";
+
+  for (const slot of timeSlots) {
+    const slotDiv = document.createElement("div");
+    slotDiv.className = "time-slot";
+    slotDiv.dataset.time = slot;
+
+    // 시간 레이블
+    const timeLabel = document.createElement("div");
+    timeLabel.className = "time-slot__time";
+    timeLabel.textContent = slot;
+    slotDiv.append(timeLabel);
+
+    // 해당 시간의 할일들
+    const tasksDiv = document.createElement("div");
+    tasksDiv.className = "time-slot__tasks";
+
+    const slotTasks = tasksInTimeSlot(withTime, slot);
+    if (slotTasks.length === 0) {
+      tasksDiv.classList.add("time-slot__tasks--empty");
+    } else {
+      for (const task of slotTasks) {
+        const taskEl = document.createElement("div");
+        taskEl.className = "time-slot__task";
+        taskEl.dataset.id = task.id;
+        taskEl.dataset.category = task.category;
+        if (editingId === task.id) taskEl.classList.add("task--editing");
+        if (task.completed) taskEl.classList.add("task--done");
+        const status = taskStatus(task);
+        if (status === "doing") taskEl.classList.add("task--doing");
+        const prio = taskPriority(task);
+        if (prio !== "normal") taskEl.classList.add(`task--prio-${prio}`);
+
+        // 우선순위 마크
+        if (prio !== "normal") {
+          const mark = document.createElement("span");
+          mark.className = `task__prio task__prio--${prio}`;
+          mark.textContent = PRIO_MARK[prio];
+          mark.title = `우선순위 ${PRIO_LABELS[prio]}`;
+          taskEl.append(mark);
+        }
+
+        // 세부분류
+        if (task.subcategory) {
+          const sc = document.createElement("span");
+          sc.className = "task__subcat";
+          sc.textContent = task.subcategory;
+          taskEl.append(sc);
+        }
+
+        // 텍스트
+        const text = document.createElement("span");
+        text.className = "time-slot__task-text";
+        text.textContent = task.text;
+        if (task.completed) text.style.textDecoration = "line-through";
+        taskEl.append(text);
+
+        // 메모 토글
+        const hasNotes = typeof task.notes === "string" && task.notes.trim() !== "";
+        const notesToggle = iconButton(
+          "task__notes-toggle",
+          hasNotes ? "메모•" : "메모",
+          hasNotes ? `"${task.text}" 메모 보기/편집` : `"${task.text}" 메모 추가`
+        );
+        if (hasNotes) notesToggle.classList.add("has-notes");
+        notesToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (expandedNotes.has(task.id)) expandedNotes.delete(task.id);
+          else expandedNotes.add(task.id);
+          opts.onTaskClick?.(e, task);
+        });
+        taskEl.append(notesToggle);
+
+        // 카테고리 칩
+        const category = document.createElement("span");
+        category.className = "task__cat";
+        category.dataset.category = task.category;
+        category.textContent = task.category;
+        taskEl.append(category);
+
+        taskEl.addEventListener("click", (e) => {
+          if (!e.target.closest(".task__notes-toggle")) {
+            onTaskClick?.(e, task);
+          }
+        });
+
+        tasksDiv.append(taskEl);
+
+        // 메모 영역 (펼쳐진 상태인 경우)
+        if (hasNotes || expandedNotes?.has(task.id)) {
+          const notesDiv = document.createElement("div");
+          notesDiv.className = "time-slot__task-notes";
+          const notes = document.createElement("textarea");
+          notes.className = "task__notes";
+          notes.value = task.notes ?? "";
+          notes.rows = 2;
+          notes.placeholder = "상세 내용…";
+          notes.setAttribute("aria-label", `"${task.text}" 상세 메모`);
+          notesDiv.append(notes);
+          tasksDiv.append(notesDiv);
+        }
+      }
+    }
+
+    slotDiv.append(tasksDiv);
+    gridSection.append(slotDiv);
+  }
+
+  container.append(gridSection);
+  listEl.append(container);
 }
 
 export { fillCategoryOptions };

@@ -61,6 +61,7 @@ import {
   renderPeriodBar,
   renderCalendar,
   renderWeekAnalysis,
+  renderTimeView,
   buildSortOptions,
   fillCategoryOptions,
   fillSubcatOptions,
@@ -119,6 +120,7 @@ const els = {
   viewDay: document.getElementById("view-day"),
   viewWeek: document.getElementById("view-week"),
   viewMonth: document.getElementById("view-month"),
+  viewTime: document.getElementById("view-time"),
   viewSeg: document.querySelector(".seg"),
   composerTarget: document.getElementById("composer-target"),
   calPrev: document.getElementById("cal-prev"),
@@ -287,12 +289,19 @@ function render() {
   renderActiveFilter(els.activeFilter, prefs.filter);
   renderNotice(els.notice, filtered.length - shown.length);
 
+  const dayView = prefs.view === "day";
+  const timeView = prefs.view === "time";
+
+  // 시간별 보기일 때 입력 폼과 제어 요소들 HIDE (READ-ONLY)
+  els.form.hidden = timeView;
+  els.sort.parentElement.hidden = timeView;
+  els.hideCompleted.parentElement.hidden = timeView;
+
   els.sort.value = prefs.sort;
   els.hideCompleted.checked = prefs.hideCompleted;
 
   // 주·월 보기에서는 새 할 일이 그 주/달 "계획"으로 들어감을 안내한다.
-  const dayView = prefs.view === "day";
-  if (dayView) {
+  if (dayView || timeView) {
     els.composerTarget.hidden = true;
   } else {
     const d = parseISO(state.selectedDate);
@@ -303,16 +312,35 @@ function render() {
         : `＋ ${formatMonthTitle(d.getFullYear(), d.getMonth())} 계획으로 추가됩니다`;
   }
 
-  renderList(els.list, shown, {
-    editingId: state.editingId,
-    manualSort: prefs.sort === "manual",
-    showDate: prefs.view !== "day", // 주·월 통합 목록은 행마다 날짜 표기
-    todayISO: today,
-    viewISO: state.selectedDate, // 일별 보기에서 "N일차" 계산용
-    subcats: state.subcats,
-    expandedNotes: state.expandedNotes,
-    emptyKind: scoped.length === 0 ? "period" : "filtered",
-  });
+  if (timeView) {
+    renderTimeView(els.list, state.tasks, {
+      anchorDate: state.selectedDate,
+      editingId: state.editingId,
+      expandedNotes: state.expandedNotes,
+      onDragStart: (e, task) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("application/json", JSON.stringify(task));
+      },
+      onTaskClick: (e, task) => {
+        if (!e.target.closest(".task__drag-handle")) {
+          state.editingId = task.id;
+          render();
+        }
+      },
+    });
+  } else {
+    renderList(els.list, shown, {
+      editingId: state.editingId,
+      manualSort: prefs.sort === "manual",
+      showDate: prefs.view !== "day", // 주·월 통합 목록은 행마다 날짜 표기
+      todayISO: today,
+      viewISO: state.selectedDate, // 일별 보기에서 "N일차" 계산용
+      view: prefs.view, // 뷰 타입 추가
+      subcats: state.subcats,
+      expandedNotes: state.expandedNotes,
+      emptyKind: scoped.length === 0 ? "period" : "filtered",
+    });
+  }
 
   // 주별 업무 분석 (selectedDate 기준으로 자동 계산)
   const weekStart = startOfWeek(state.selectedDate);
@@ -452,6 +480,11 @@ initSettingsPanel({
     saveSubcats(state.subcats);
     syncComposerSubcats();
     render();
+  },
+  getTasks: () => state.tasks,
+  setTasks: (next) => {
+    state.tasks = next;
+    commit();
   },
   onExport: doExport,
   onImport: (file) => doImport(file),
@@ -738,7 +771,17 @@ async function doImport(file) {
 /* ── 이벤트: 목록 위임 (완료/수정/삭제/편집) ────────────────── */
 function idFromEvent(e) {
   const li = e.target.closest("li[data-id]");
-  return li ? li.dataset.id : null;
+  if (li) return li.dataset.id;
+  // 시간별 보기: 메모 영역에서 호출된 경우 형제 또는 부모의 task 엘리먼트 찾기
+  let current = e.target.closest(".time-slot__task-notes");
+  if (current) {
+    const taskEl = current.previousElementSibling?.closest("div[data-id].time-slot__task") ||
+                   current.parentElement?.querySelector("div[data-id].time-slot__task");
+    if (taskEl) return taskEl.dataset.id;
+  }
+  // 직접 task 엘리먼트에서 호출된 경우
+  const div = e.target.closest("div[data-id].time-slot__task");
+  return div ? div.dataset.id : null;
 }
 
 function commitEditFrom(li) {
@@ -763,6 +806,16 @@ function commitEditFrom(li) {
     endDate: val(".edit-enddate") || null,
     scope: val(".edit-scope"),
   });
+
+  // 시간 할당 처리
+  const timeAssign = val(".edit-time-assign");
+  if (timeAssign === "시간할당") {
+    const startTime = val(".edit-time");
+    next = next.map((t) => (t.id === id ? { ...t, startTime } : t));
+  } else {
+    next = next.map((t) => (t.id === id ? { ...t, startTime: undefined } : t));
+  }
+
   commit(next);
   // 기존 항목의 카테고리를 직접 바꾼 것도 교정 신호로 학습한다.
   if (categoryChanged) learnCorrection(text, category);
@@ -886,6 +939,52 @@ attachDnd(els.list, (fromId, toId, place) => {
   commit(reorderTask(state.tasks, fromId, toId, place));
 });
 
+// 시간별 뷰: 시간 슬롯에 드롭하면 startTime 업데이트
+els.list.addEventListener("dragover", (e) => {
+  if (state.prefs.view !== "time") return;
+  const timeSlot = e.target.closest(".time-slot__tasks");
+  if (timeSlot) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    timeSlot.classList.add("time-slot__tasks--drag-over");
+  }
+});
+
+els.list.addEventListener("dragleave", (e) => {
+  if (state.prefs.view !== "time") return;
+  const timeSlot = e.target.closest(".time-slot__tasks");
+  if (timeSlot) {
+    timeSlot.classList.remove("time-slot__tasks--drag-over");
+  }
+});
+
+els.list.addEventListener("drop", (e) => {
+  if (state.prefs.view !== "time") return;
+  const timeSlot = e.target.closest(".time-slot__tasks");
+  if (!timeSlot) return;
+
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  timeSlot.classList.remove("time-slot__tasks--drag-over");
+
+  try {
+    const taskData = JSON.parse(e.dataTransfer.getData("application/json"));
+    const taskIdx = state.tasks.findIndex((t) => t.id === taskData.id);
+    if (taskIdx === -1) return;
+
+    const slot = timeSlot.closest(".time-slot");
+    const slotTime = slot?.dataset.time;
+    if (!slotTime) return;
+
+    // startTime 설정
+    const setTaskStartTime = (task, time) => ({ ...task, startTime: time });
+    state.tasks[taskIdx] = setTaskStartTime(state.tasks[taskIdx], slotTime);
+    commit();
+  } catch (err) {
+    console.warn("드래그 드롭 처리 중 오류:", err);
+  }
+});
+
 /* ── 초기화 ────────────────────────────────────────────────── */
 /** 브라우저 탭·앱 바 제목에 버전을 붙인다. */
 function applyAppTitle() {
@@ -899,6 +998,29 @@ function applyAppTitle() {
   }
 }
 
+/** 업무 세부분류 변경 후 일관성이 없는 subcategory를 정규화한다. */
+function normalizeTaskSubcatsAfterLoad() {
+  const wumupMap = state.subcats.업무 || {};
+  const validParents = new Set(Object.keys(wumupMap));
+  let fixed = false;
+  const updated = state.tasks.map((t) => {
+    if (t.category !== "업무" || !t.subcategory) return t;
+    const i = t.subcategory.indexOf("/");
+    if (i === -1) return t; // "부모/자식" 형식이 아니면 패스
+    const parent = t.subcategory.slice(0, i);
+    if (!validParents.has(parent)) {
+      fixed = true;
+      return { ...t, subcategory: undefined };
+    }
+    return t;
+  });
+  if (fixed) {
+    state.tasks = updated;
+    commit();
+    console.info("일관성 없는 세부분류를 정규화했습니다.");
+  }
+}
+
 function init() {
   applyAppTitle();
   fillCategoryOptions(els.category, CATEGORIES[0]);
@@ -908,6 +1030,7 @@ function init() {
   state.tasks = loadTasks();
   state.prefs = loadPrefs();
   state.subcats = loadSubcats();
+  normalizeTaskSubcatsAfterLoad();
   syncComposerSubcats();
   render();
   // index.html의 "직접 열기" 안내를 끄는 신호.

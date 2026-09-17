@@ -652,3 +652,46 @@ export function historyEntries(tasks, { query = "", from = null, to = null } = {
     })
     .sort((a, b) => b.doneAt - a.doneAt);
 }
+
+/* ── 시간별 뷰 ────────────────────────────────────────────────── */
+
+/** 시간 범위: 08:00 ~ 20:00, 1시간 슬롯. @returns {Array<string>} ["08:00", "09:00", ...] */
+export function getTimeSlots() {
+  const slots = [];
+  for (let h = 8; h < 21; h++) {
+    slots.push(`${String(h).padStart(2, "0")}:00`);
+  }
+  return slots;
+}
+
+/** 특정 날짜의 할일을 시간별·미배정으로 분류. */
+export function tasksForTimeView(tasks, anchorDate) {
+  const scoped = tasks.filter((t) => t.date === anchorDate && taskScope(t) === "day");
+  const withTime = scoped.filter((t) => typeof t.startTime === "string");
+  const unscheduled = scoped.filter((t) => !t.startTime);
+  return { withTime, unscheduled };
+}
+
+/** 특정 시간 슬롯(HH:MM)에 해당하는 할일 목록. */
+export function tasksInTimeSlot(tasks, slotTime) {
+  return tasks.filter((t) => t.startTime === slotTime);
+}
+
+/** startTime을 HH:MM으로 정규화. */
+export function normalizeStartTime(v) {
+  if (typeof v !== "string") return undefined;
+  const trimmed = v.trim();
+  if (!/^\d{1,2}:\d{1,2}$/.test(trimmed)) return undefined;
+  const [h, m] = trimmed.split(":");
+  const hh = parseInt(h, 10);
+  const mm = parseInt(m, 10);
+  if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) return undefined;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+/** 할일의 startTime 설정. */
+export function setTaskStartTime(task, startTime) {
+  const normalized = normalizeStartTime(startTime);
+  if (normalized === undefined) return task;
+  return { ...task, startTime: normalized };
+}

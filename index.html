@@ -141,6 +141,15 @@
             <div class="seg" role="group" aria-label="보기 단위">
               <button
                 type="button"
+                id="view-time"
+                data-view="time"
+                class="seg__btn"
+                aria-pressed="false"
+              >
+                시간별 보기
+              </button>
+              <button
+                type="button"
                 id="view-day"
                 data-view="day"
                 class="seg__btn is-active"
@@ -309,7 +318,7 @@
 
       <div id="backup-panel" class="settings__panel">
         <p class="settings__desc">
-          일주일에 한 번 자동으로 할 일을 내보내기합니다.
+          매일 자동으로 할 일을 내보내기합니다.
           같은 파일명으로 덮어쓰므로 최신 백업만 유지됩니다.
         </p>
         <div id="backup-body" class="settings__body"></div>
