@@ -334,12 +334,14 @@ export function initSettingsPanel({
       x.addEventListener("click", () => {
         // 세부분류 삭제 전에 할 일 마이그레이션 (미분류로 이동)
         const tasks = getTasks();
+        console.log(`🔍 삭제 시작: ${cat} > ${name}, tasks: ${tasks.length}`);
         let migrated = false;
         const updated = tasks.map((task) => {
           if (task.category !== cat || !task.subcategory) return task;
           // 개인/공부 또는 단순 세부분류 비교
           if (cat !== "업무") {
             if (task.subcategory === name) {
+              console.log(`🔧 마이그레이션: "${task.text}" → 미분류`);
               migrated = true;
               return { ...task, subcategory: undefined };
             }
@@ -349,17 +351,23 @@ export function initSettingsPanel({
             if (i !== -1) {
               const parent = task.subcategory.slice(0, i);
               if (parent === name) {
+                console.log(`🔧 마이그레이션 (부모): "${task.text}" → 미분류`);
                 migrated = true;
                 return { ...task, subcategory: undefined };
               }
             } else if (task.subcategory === name) {
+              console.log(`🔧 마이그레이션 (단순): "${task.text}" → 미분류`);
               migrated = true;
               return { ...task, subcategory: undefined };
             }
           }
           return task;
         });
-        if (migrated) setTasks(updated);
+        console.log(`✅ migrated: ${migrated}, updated: ${updated.length}`);
+        if (migrated) {
+          console.log('📝 setTasks 호출');
+          setTasks(updated);
+        }
 
         setSubcats(removeSubcat(getSubcats(), cat, name));
         renderSubcatPanel();
