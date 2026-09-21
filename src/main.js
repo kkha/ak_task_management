@@ -557,6 +557,12 @@ window._settingsInit = initSettingsPanel({
     setClassifier(next);
     refreshAutoCategory();
   },
+  getTasks: () => state.tasks,
+  setTasks: (next) => {
+    state.tasks = next;
+    saveTasks(state.tasks);
+    render();
+  },
   getSubcats: () => state.subcats,
   setSubcats: (next) => {
     // 세부분류 삭제 후 orphaned tasks 정리
