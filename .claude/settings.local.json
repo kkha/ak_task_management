@@ -33,7 +33,8 @@
       "Bash(timeout 20 node test-migration-simple.mjs)",
       "Bash(node test-debug.mjs)",
       "Bash(node test-final.mjs)",
-      "Bash(node test-dev-server.mjs)"
+      "Bash(node test-dev-server.mjs)",
+      "Bash(awk '/^function render\\\\\\(\\\\\\) \\\\{/,/^}/ { print NR\": \"$0 }' C:/AK_Claude/My_Task_App/src/main.js)"
     ]
   }
 }

@@ -63,18 +63,21 @@ import { chromium } from 'playwright';
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(3000);
 
-    console.log(`   콘솔 로그: ${logs.slice(0, 3).join(' | ')}`);
+    console.log(`   콘솔 로그 (${logs.length}개):`);
+    logs.slice(0, 10).forEach((l, i) => console.log(`     ${i + 1}. ${l}`));
 
-    // 실행 흐름 확인
-    const flags = await page.evaluate(() => ({
-      initStarted: !!window._initStarted,
-      tasksLoaded: !!window._tasksLoaded,
-      subcatsLoaded: !!window._subcatsLoaded,
-      beforeRender: !!window._beforeRender,
-      afterRender: !!window._afterRender,
-      renderCalled: window._renderCalled || 0,
-    }));
-    console.log(`   실행 흐름:`, flags);
+    // render() 호출 횟수 확인 (localStorage 사용)
+    const allStorage = await page.evaluate(() => {
+      const result = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        result[key] = localStorage.getItem(key);
+      }
+      return result;
+    });
+    const renderCount = parseInt(allStorage._renderCallCount || '0');
+    console.log(`   render() 호출됨: ${renderCount}회`);
+    console.log(`   localStorage 키: ${Object.keys(allStorage).slice(0, 5).join(', ')}...`);
 
     // 결과 확인
     console.log('📝 Step 5: 결과 확인\n');

@@ -255,8 +255,10 @@ function currentlyShownTasks() {
 }
 
 function render() {
-  // 테스트용 플래그
-  window._renderCalled = (window._renderCalled || 0) + 1;
+  // 테스트용: 호출 기록
+  const newCount = parseInt(localStorage.getItem('_renderCallCount') || '0') + 1;
+  localStorage.setItem('_renderCallCount', newCount.toString());
+  console.warn('🔥 render() called:', newCount);
 
   // 세부분류 삭제 후 orphaned tasks 자동 정리 (매 렌더링마다)
   let migrationCount = 0;
@@ -1158,8 +1160,10 @@ function init() {
   normalizeTaskSubcatsAfterLoad();
   syncComposerSubcats();
   window._beforeRender = true;
+  console.error('🔥 Before render:', window._beforeRender);
   render();
   window._afterRender = true;
+  console.error('🔥 After render:', window._afterRender);
   // index.html의 "직접 열기" 안내를 끄는 신호.
   window.__APP_BOOTED__ = true;
   console.info(`할 일 ${state.tasks.length}개를 불러왔습니다.`);
