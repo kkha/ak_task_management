@@ -167,7 +167,33 @@ const THEME_LABEL = { system: "자동", light: "밝게", dark: "어둡게" };
 
 /* ── 상태 변경 ─────────────────────────────────────────────── */
 function commit(nextTasks = state.tasks) {
-  state.tasks = nextTasks;
+  // Orphaned tasks 정리: 세부분류가 존재하지 않는 할 일을 미분류로 변경
+  const cleanedTasks = nextTasks.map((task) => {
+    if (!task.subcategory) return task;
+    const subcats = state.subcats[task.category];
+    if (!subcats) return task;
+
+    if (task.category === "업무" && typeof subcats === "object" && !Array.isArray(subcats)) {
+      // 업무: nested {"parent": [...children]}
+      const i = task.subcategory.indexOf("/");
+      if (i !== -1) {
+        const parent = task.subcategory.slice(0, i);
+        if (!subcats[parent]) return { ...task, subcategory: undefined };
+      } else {
+        if (!Object.keys(subcats).includes(task.subcategory)) {
+          return { ...task, subcategory: undefined };
+        }
+      }
+    } else if (Array.isArray(subcats)) {
+      // 개인/공부: flat ["a", "b"]
+      if (!subcats.includes(task.subcategory)) {
+        return { ...task, subcategory: undefined };
+      }
+    }
+    return task;
+  });
+
+  state.tasks = cleanedTasks;
   saveTasks(state.tasks);
   render();
 }
@@ -229,44 +255,6 @@ function currentlyShownTasks() {
 }
 
 function render() {
-  // 세부분류 삭제 후 orphaned tasks 자동 정리
-  const subcats = state.subcats;
-  const cleanedTasks = state.tasks.map((task) => {
-    if (!task.subcategory) return task;
-    const { category, subcategory } = task;
-
-    // 해당 카테고리의 세부분류 확인
-    const catSubcats = subcats[category];
-    if (!catSubcats) return task;
-
-    if (category === "업무" && typeof catSubcats === "object" && !Array.isArray(catSubcats)) {
-      // 업무: nested 구조 {"parent": ["child", ...]}
-      const i = subcategory.indexOf("/");
-      if (i !== -1) {
-        const parent = subcategory.slice(0, i);
-        // 부모가 존재하지 않으면 미분류로
-        if (!catSubcats[parent]) {
-          return { ...task, subcategory: undefined };
-        }
-      } else if (Object.keys(catSubcats).indexOf(subcategory) === -1) {
-        // 단순 부모 형태인데 부모가 없으면 미분류로
-        return { ...task, subcategory: undefined };
-      }
-    } else if (Array.isArray(catSubcats)) {
-      // 개인/공부: flat 구조 ["a", "b", ...]
-      if (!catSubcats.includes(subcategory)) {
-        return { ...task, subcategory: undefined };
-      }
-    }
-
-    return task;
-  });
-
-  // 변경사항이 있으면 상태만 업데이트 (저장은 하지 않음)
-  if (JSON.stringify(cleanedTasks) !== JSON.stringify(state.tasks)) {
-    state.tasks = cleanedTasks;
-  }
-
   const { prefs } = state;
   const today = todayISODate();
   applyTheme(prefs.theme);
@@ -523,7 +511,8 @@ window._settingsInit = initSettingsPanel({
     state.subcats = next;
     saveSubcats(state.subcats);
     syncComposerSubcats();
-    render();
+    // 세부분류 삭제 후 orphaned tasks 정리
+    commit();
   },
   getTasks: () => state.tasks,
   setTasks: (next) => {
