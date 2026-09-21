@@ -255,6 +255,35 @@ function currentlyShownTasks() {
 }
 
 function render() {
+  // 세부분류 삭제 후 orphaned tasks 자동 정리 (매 렌더링마다)
+  const cleanedTasks = state.tasks.map((task) => {
+    if (!task.subcategory) return task;
+    const subcats = state.subcats[task.category];
+    if (!subcats) return task;
+
+    if (task.category === "업무" && typeof subcats === "object" && !Array.isArray(subcats)) {
+      const i = task.subcategory.indexOf("/");
+      if (i !== -1) {
+        const parent = task.subcategory.slice(0, i);
+        if (!subcats[parent]) return { ...task, subcategory: undefined };
+      } else {
+        if (!Object.keys(subcats).includes(task.subcategory)) {
+          return { ...task, subcategory: undefined };
+        }
+      }
+    } else if (Array.isArray(subcats)) {
+      if (!subcats.includes(task.subcategory)) {
+        return { ...task, subcategory: undefined };
+      }
+    }
+    return task;
+  });
+
+  if (JSON.stringify(cleanedTasks) !== JSON.stringify(state.tasks)) {
+    state.tasks = cleanedTasks;
+    saveTasks(state.tasks);
+  }
+
   const { prefs } = state;
   const today = todayISODate();
   applyTheme(prefs.theme);
