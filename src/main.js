@@ -75,7 +75,7 @@ import {
   learnFromText,
   removeKeyword,
 } from "./classify.js";
-import initSettingsPanel from "./settings.js";
+import { initSettingsPanel } from "./settings.js";
 import { initHistory } from "./history.js";
 import { isBackupTime, loadBackupConfig, getDirHandle, saveBackupConfig } from "./backup.js";
 
@@ -471,8 +471,8 @@ function updateBackupStatus() {
   backupStatus.hidden = !config.enabled;
 }
 
-// tree-shaking 방지: 함수 호출 결과를 저장 (void 반환이지만 side effects 있음)
-void initSettingsPanel({
+// tree-shaking 방지: window 객체에 할당해서 side effects 강제
+window._settingsInit = initSettingsPanel({
   dialog: els.settingsDialog,
   openBtn: els.settingsBtn,
   getConfig: () => classifier,

@@ -2,6 +2,9 @@
 
 import "./styles/settings.css";
 import { CATEGORIES } from "./tasks.js";
+
+// tree-shaking 방지: 모듈 로드 확인용 플래그
+if (typeof window !== "undefined") window._settingsLoaded = true;
 import { KEYWORDS, addKeyword, removeKeyword } from "./classify.js";
 import {
   subcatsOf,
@@ -60,7 +63,7 @@ function migrateTasksAfterSubcatRename(getTasks, setTasks, cat, fromName, toName
 }
 
 /** 통합 설정 다이얼로그 초기화. */
-export default function initSettingsPanel({
+export function initSettingsPanel({
   dialog,
   openBtn,
   getConfig,
@@ -329,6 +332,35 @@ export default function initSettingsPanel({
       x.textContent = "×";
       x.setAttribute("aria-label", `${cat} '${name}' 삭제`);
       x.addEventListener("click", () => {
+        // 세부분류 삭제 전에 할 일 마이그레이션 (미분류로 이동)
+        const tasks = getTasks();
+        let migrated = false;
+        const updated = tasks.map((task) => {
+          if (task.category !== cat || !task.subcategory) return task;
+          // 개인/공부 또는 단순 세부분류 비교
+          if (cat !== "업무") {
+            if (task.subcategory === name) {
+              migrated = true;
+              return { ...task, subcategory: undefined };
+            }
+          } else {
+            // 업무: "parent/child" 형태 확인
+            const i = task.subcategory.indexOf("/");
+            if (i !== -1) {
+              const parent = task.subcategory.slice(0, i);
+              if (parent === name) {
+                migrated = true;
+                return { ...task, subcategory: undefined };
+              }
+            } else if (task.subcategory === name) {
+              migrated = true;
+              return { ...task, subcategory: undefined };
+            }
+          }
+          return task;
+        });
+        if (migrated) setTasks(updated);
+
         setSubcats(removeSubcat(getSubcats(), cat, name));
         renderSubcatPanel();
       });

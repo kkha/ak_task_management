@@ -21,7 +21,12 @@
       "Bash(Stop-Process -Force)",
       "PowerShell(Get-Process *)",
       "Bash(git reset *)",
-      "Bash(git commit -m '세부분류 삭제 마이그레이션: tree-shaking 문제 해결 *)"
+      "Bash(git commit -m '세부분류 삭제 마이그레이션: tree-shaking 문제 해결 *)",
+      "Bash(rm -rf node_modules)",
+      "Bash(npm install *)",
+      "Bash(node --check src/main.js)",
+      "Bash(node --check src/settings.js)",
+      "Bash(git commit -m '마이그레이션 기능 완성: 콘솔 테스트 성공 *)"
     ]
   }
 }
