@@ -75,7 +75,7 @@ import {
   learnFromText,
   removeKeyword,
 } from "./classify.js";
-import { initSettingsPanel } from "./settings.js";
+import { initSettingsPanel, initSettings, initSubcatEditor } from "./settings.js";
 import { initHistory } from "./history.js";
 import { isBackupTime, loadBackupConfig, getDirHandle, saveBackupConfig } from "./backup.js";
 
@@ -549,6 +549,7 @@ function updateBackupStatus() {
 }
 
 // tree-shaking 방지: window 객체에 할당해서 side effects 강제
+console.log('🔧 initSettingsPanel 호출 중...');
 window._settingsInit = initSettingsPanel({
   dialog: els.settingsDialog,
   openBtn: els.settingsBtn,
@@ -557,8 +558,12 @@ window._settingsInit = initSettingsPanel({
     setClassifier(next);
     refreshAutoCategory();
   },
-  getTasks: () => state.tasks,
+  getTasks: () => {
+    console.log('getTasks 호출됨');
+    return state.tasks;
+  },
   setTasks: (next) => {
+    console.log('setTasks 호출됨');
     state.tasks = next;
     saveTasks(state.tasks);
     render();
@@ -1202,4 +1207,14 @@ window.__init = init;
 console.log('🔧 render/init 전역 노출:', { render: typeof window.__render, init: typeof window.__init });
 
 init();
-console.log('✅ init() 호출 완료');
+
+// 세부분류 변경 시 마이그레이션 - 별도 구현
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.kw__x');
+  if (!btn) return;
+
+  // 100ms 후 render() 호출 (DOM 업데이트 후)
+  setTimeout(() => {
+    render();
+  }, 100);
+});
