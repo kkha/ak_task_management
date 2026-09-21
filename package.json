@@ -1,6 +1,6 @@
 {
   "name": "task-management",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "description": "Task Management — 날짜·주·월별 할 일 + 세부분류 + 상태·우선순위·반복·히스토리 + 달력. 계정·설치·네트워크 없이 브라우저만으로 동작하는 단일 파일 앱.",
   "type": "module",
   "sideEffects": ["src/settings.js"],
