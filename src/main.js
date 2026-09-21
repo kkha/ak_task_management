@@ -255,55 +255,40 @@ function currentlyShownTasks() {
 }
 
 function render() {
+  // localStorage에서 직접 orphaned tasks 정리 (state 동기화와 무관하게 작동)
   try {
-    // 테스트용: 호출 기록
-    const newCount = parseInt(localStorage.getItem('_renderCallCount') || '0') + 1;
-    localStorage.setItem('_renderCallCount', newCount.toString());
-    console.warn('🔥 render() called:', newCount);
-  } catch (e) {
-    console.error('❌ render() start error:', e.message);
-  }
+    const tasks = JSON.parse(localStorage.getItem('task-app.tasks') || '[]');
+    const subcats = JSON.parse(localStorage.getItem('task-app.subcategories') || '{}');
 
-  // 세부분류 삭제 후 orphaned tasks 자동 정리 (매 렌더링마다)
-  let migrationCount = 0;
-  const cleanedTasks = state.tasks.map((task) => {
-    if (!task.subcategory) return task;
-    const subcats = state.subcats[task.category];
-    if (!subcats) return task;
+    const cleanedTasks = tasks.map((task) => {
+      if (!task.subcategory) return task;
+      const subcatsForCat = subcats[task.category];
+      if (!subcatsForCat) return task;
 
-    if (task.category === "업무" && typeof subcats === "object" && !Array.isArray(subcats)) {
-      const i = task.subcategory.indexOf("/");
-      if (i !== -1) {
-        const parent = task.subcategory.slice(0, i);
-        if (!subcats[parent]) {
-          migrationCount++;
-          console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
-          return { ...task, subcategory: undefined };
+      if (task.category === "업무" && typeof subcatsForCat === "object" && !Array.isArray(subcatsForCat)) {
+        const i = task.subcategory.indexOf("/");
+        if (i !== -1) {
+          const parent = task.subcategory.slice(0, i);
+          if (!subcatsForCat[parent]) return { ...task, subcategory: undefined };
+        } else {
+          if (!Object.keys(subcatsForCat).includes(task.subcategory)) {
+            return { ...task, subcategory: undefined };
+          }
         }
-      } else {
-        if (!Object.keys(subcats).includes(task.subcategory)) {
-          migrationCount++;
-          console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
-          console.log(`   부모 목록: ${Object.keys(subcats).join(", ")}`);
+      } else if (Array.isArray(subcatsForCat)) {
+        if (!subcatsForCat.includes(task.subcategory)) {
           return { ...task, subcategory: undefined };
         }
       }
-    } else if (Array.isArray(subcats)) {
-      if (!subcats.includes(task.subcategory)) {
-        migrationCount++;
-        console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
-        return { ...task, subcategory: undefined };
-      }
+      return task;
+    });
+
+    if (JSON.stringify(tasks) !== JSON.stringify(cleanedTasks)) {
+      localStorage.setItem('task-app.tasks', JSON.stringify(cleanedTasks));
+      state.tasks = cleanedTasks;
     }
-    return task;
-  });
-
-  const changed = state.tasks.some((t, i) => JSON.stringify(t) !== JSON.stringify(cleanedTasks[i]));
-  console.log(`[DEBUG render] 마이그레이션 카운트: ${migrationCount}, 변경됨: ${changed}`);
-  if (changed) {
-    console.log(`✅ 변경사항 저장 중...`);
-    state.tasks = cleanedTasks;
-    saveTasks(state.tasks);
+  } catch (e) {
+    console.error('orphaned tasks 정리 실패:', e);
   }
 
   const { prefs } = state;
