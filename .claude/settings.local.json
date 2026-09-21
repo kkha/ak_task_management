@@ -26,7 +26,9 @@
       "Bash(npm install *)",
       "Bash(node --check src/main.js)",
       "Bash(node --check src/settings.js)",
-      "Bash(git commit -m '마이그레이션 기능 완성: 콘솔 테스트 성공 *)"
+      "Bash(git commit -m '마이그레이션 기능 완성: 콘솔 테스트 성공 *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)"
     ]
   }
 }
