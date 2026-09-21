@@ -1157,6 +1157,30 @@ function init() {
   state.prefs = loadPrefs();
   state.subcats = loadSubcats();
   window._subcatsLoaded = true;
+
+  // 세부분류 orphaned tasks 자동 정리 (페이지 로드 시)
+  const cleanedTasks = state.tasks.map((task) => {
+    if (!task.subcategory) return task;
+    const subcats = state.subcats[task.category];
+    if (!subcats) return task;
+
+    if (task.category === "업무" && typeof subcats === "object" && !Array.isArray(subcats)) {
+      if (!Object.keys(subcats).includes(task.subcategory)) {
+        return { ...task, subcategory: undefined };
+      }
+    } else if (Array.isArray(subcats)) {
+      if (!subcats.includes(task.subcategory)) {
+        return { ...task, subcategory: undefined };
+      }
+    }
+    return task;
+  });
+
+  if (JSON.stringify(state.tasks) !== JSON.stringify(cleanedTasks)) {
+    state.tasks = cleanedTasks;
+    saveTasks(state.tasks);
+  }
+
   normalizeTaskSubcatsAfterLoad();
   syncComposerSubcats();
   window._beforeRender = true;
