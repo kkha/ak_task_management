@@ -255,10 +255,14 @@ function currentlyShownTasks() {
 }
 
 function render() {
-  // 테스트용: 호출 기록
-  const newCount = parseInt(localStorage.getItem('_renderCallCount') || '0') + 1;
-  localStorage.setItem('_renderCallCount', newCount.toString());
-  console.warn('🔥 render() called:', newCount);
+  try {
+    // 테스트용: 호출 기록
+    const newCount = parseInt(localStorage.getItem('_renderCallCount') || '0') + 1;
+    localStorage.setItem('_renderCallCount', newCount.toString());
+    console.warn('🔥 render() called:', newCount);
+  } catch (e) {
+    console.error('❌ render() start error:', e.message);
+  }
 
   // 세부분류 삭제 후 orphaned tasks 자동 정리 (매 렌더링마다)
   let migrationCount = 0;
@@ -1161,7 +1165,7 @@ function init() {
   syncComposerSubcats();
   window._beforeRender = true;
   console.error('🔥 Before render:', window._beforeRender);
-  render();
+  window.__render();  // 전역으로 노출된 render 호출
   window._afterRender = true;
   console.error('🔥 After render:', window._afterRender);
   // index.html의 "직접 열기" 안내를 끄는 신호.
@@ -1185,6 +1189,11 @@ function init() {
   window._commit = commit;
   console.log('🔧 테스트 전역 변수 노출 완료:', { state: !!window._state, render: !!window._render });
 }
+
+// ES 모듈 스코프 때문에 render/init을 전역으로 노출
+window.__render = render;
+window.__init = init;
+console.log('🔧 render/init 전역 노출:', { render: typeof window.__render, init: typeof window.__init });
 
 init();
 console.log('✅ init() 호출 완료');

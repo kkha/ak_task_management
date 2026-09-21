@@ -295,7 +295,38 @@ export function loadSubcats(store = safeStorage()) {
 /** 세부분류 맵을 저장한다. 실패는 삼킨다. */
 export function saveSubcats(map, store = safeStorage()) {
   try {
-    store.setItem(SUBCATS_KEY, JSON.stringify(normalizeSubcats(map)));
+    const normalizedMap = normalizeSubcats(map);
+    store.setItem(SUBCATS_KEY, JSON.stringify(normalizedMap));
+
+    // 삭제된 세부분류의 orphaned tasks 자동 정리
+    try {
+      const tasks = JSON.parse(store.getItem(TASKS_KEY) || '[]');
+      const cleanedTasks = tasks.map((task) => {
+        if (!task.subcategory) return task;
+        const subcats = normalizedMap[task.category];
+        if (!subcats) return task;
+
+        if (task.category === "업무" && typeof subcats === "object" && !Array.isArray(subcats)) {
+          if (!Object.keys(subcats).includes(task.subcategory)) {
+            console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
+            return { ...task, subcategory: undefined };
+          }
+        } else if (Array.isArray(subcats)) {
+          if (!subcats.includes(task.subcategory)) {
+            console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
+            return { ...task, subcategory: undefined };
+          }
+        }
+        return task;
+      });
+
+      if (JSON.stringify(tasks) !== JSON.stringify(cleanedTasks)) {
+        store.setItem(TASKS_KEY, JSON.stringify(cleanedTasks));
+        console.log('✅ orphaned tasks 정리 완료');
+      }
+    } catch (e) {
+      console.warn("세부분류 삭제 후 orphaned tasks 정리 실패:", e);
+    }
   } catch (err) {
     console.warn("세부분류를 저장하지 못했습니다.", err);
   }
