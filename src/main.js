@@ -255,7 +255,11 @@ function currentlyShownTasks() {
 }
 
 function render() {
+  // 테스트용 플래그
+  window._renderCalled = (window._renderCalled || 0) + 1;
+
   // 세부분류 삭제 후 orphaned tasks 자동 정리 (매 렌더링마다)
+  let migrationCount = 0;
   const cleanedTasks = state.tasks.map((task) => {
     if (!task.subcategory) return task;
     const subcats = state.subcats[task.category];
@@ -265,21 +269,33 @@ function render() {
       const i = task.subcategory.indexOf("/");
       if (i !== -1) {
         const parent = task.subcategory.slice(0, i);
-        if (!subcats[parent]) return { ...task, subcategory: undefined };
+        if (!subcats[parent]) {
+          migrationCount++;
+          console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
+          return { ...task, subcategory: undefined };
+        }
       } else {
         if (!Object.keys(subcats).includes(task.subcategory)) {
+          migrationCount++;
+          console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
+          console.log(`   부모 목록: ${Object.keys(subcats).join(", ")}`);
           return { ...task, subcategory: undefined };
         }
       }
     } else if (Array.isArray(subcats)) {
       if (!subcats.includes(task.subcategory)) {
+        migrationCount++;
+        console.log(`🔧 마이그레이션: "${task.text}" (${task.subcategory}) → 미분류`);
         return { ...task, subcategory: undefined };
       }
     }
     return task;
   });
 
-  if (JSON.stringify(cleanedTasks) !== JSON.stringify(state.tasks)) {
+  const changed = state.tasks.some((t, i) => JSON.stringify(t) !== JSON.stringify(cleanedTasks[i]));
+  console.log(`[DEBUG render] 마이그레이션 카운트: ${migrationCount}, 변경됨: ${changed}`);
+  if (changed) {
+    console.log(`✅ 변경사항 저장 중...`);
     state.tasks = cleanedTasks;
     saveTasks(state.tasks);
   }
@@ -1128,17 +1144,22 @@ function normalizeTaskSubcatsAfterLoad() {
 }
 
 function init() {
+  window._initStarted = true;
   applyAppTitle();
   fillCategoryOptions(els.category, CATEGORIES[0]);
   buildSortOptions(els.sort, "manual");
   fillPriorityOptions(els.priority, "normal");
 
   state.tasks = loadTasks();
+  window._tasksLoaded = true;
   state.prefs = loadPrefs();
   state.subcats = loadSubcats();
+  window._subcatsLoaded = true;
   normalizeTaskSubcatsAfterLoad();
   syncComposerSubcats();
+  window._beforeRender = true;
   render();
+  window._afterRender = true;
   // index.html의 "직접 열기" 안내를 끄는 신호.
   window.__APP_BOOTED__ = true;
   console.info(`할 일 ${state.tasks.length}개를 불러왔습니다.`);
@@ -1153,6 +1174,13 @@ function init() {
       doExportAutomatic();
     }
   }, 60000);
+
+  // 테스트용 전역 노출
+  window._state = state;
+  window._render = render;
+  window._commit = commit;
+  console.log('🔧 테스트 전역 변수 노출 완료:', { state: !!window._state, render: !!window._render });
 }
 
 init();
+console.log('✅ init() 호출 완료');

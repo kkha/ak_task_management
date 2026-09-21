@@ -28,7 +28,12 @@
       "Bash(node --check src/settings.js)",
       "Bash(git commit -m '마이그레이션 기능 완성: 콘솔 테스트 성공 *)",
       "Bash(git commit *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(node test-subcat-migration.mjs)",
+      "Bash(timeout 20 node test-migration-simple.mjs)",
+      "Bash(node test-debug.mjs)",
+      "Bash(node test-final.mjs)",
+      "Bash(node test-dev-server.mjs)"
     ]
   }
 }
