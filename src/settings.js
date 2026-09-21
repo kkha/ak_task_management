@@ -60,7 +60,7 @@ function migrateTasksAfterSubcatRename(getTasks, setTasks, cat, fromName, toName
 }
 
 /** 통합 설정 다이얼로그 초기화. */
-export function initSettingsPanel({
+export default function initSettingsPanel({
   dialog,
   openBtn,
   getConfig,

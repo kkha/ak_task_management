@@ -19,7 +19,9 @@
       "Bash(pkill -f \"npm run dev\")",
       "Bash(Get-Process node *)",
       "Bash(Stop-Process -Force)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "Bash(git reset *)",
+      "Bash(git commit -m '세부분류 삭제 마이그레이션: tree-shaking 문제 해결 *)"
     ]
   }
 }

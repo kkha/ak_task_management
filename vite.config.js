@@ -9,6 +9,12 @@ export default defineConfig({
     target: "es2020",
     cssCodeSplit: false,
     assetsInlineLimit: 100_000_000,
+    rollupOptions: {
+      output: {
+        preserveEntrySignatures: "strict",
+      },
+      treeshake: false,
+    },
   },
   test: {
     environment: "node",
